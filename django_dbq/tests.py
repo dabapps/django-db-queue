@@ -3,36 +3,13 @@ from django.core.management import call_command, CommandError
 from django.core.urlresolvers import reverse
 from django.test import TestCase, LiveServerTestCase
 from django.test.utils import override_settings
-from importer.apps.core.management.commands.worker import process_job
-from importer.apps.core.models import Job
-from importer.apps.core.utils.requests_storage import SessionStorage
+from django_dbq.apps.core.management.commands.worker import process_job
+from django_dbq.apps.core.models import Job
+from django_dbq.apps.core.utils.requests_storage import SessionStorage
 from requests import Session
 from rest_framework import status
 from rest_framework.test import APITestCase
 from StringIO import StringIO
-
-
-class ImporterTestCase(APITestCase):
-    def test_index_endpoint(self):
-        """
-        The endpoint should currently return "Hello, World!"
-        """
-        url = reverse('index')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.keys(), ['create_job'])
-        self.assertEqual(response.data['create_job'], 'http://testserver/jobs/')
-
-    def test_exception_view(self):
-        """
-        Exercise a view which always raises an exception.
-        We use this to ensure logging config etc is setup correctly.
-        """
-        url = reverse('exception')
-        with self.assertRaises(Exception) as context_manager:
-            self.client.get(url)
-        exc = context_manager.exception
-        self.assertEqual(str(exc), 'You asked for it, kid.')
 
 
 def test_task(job=None):
