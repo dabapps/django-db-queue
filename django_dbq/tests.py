@@ -56,7 +56,7 @@ class JobTestCase(TestCase):
 
     def test_create_job(self):
         job = Job(name='testjob')
-        self.assertEqual(job.state, Job.STATES.READY)
+        self.assertEqual(job.state, Job.STATES.NEW)
 
     def test_get_next_ready_job(self):
         self.assertTrue(Job.objects.get_ready_or_none() is None)
@@ -64,6 +64,18 @@ class JobTestCase(TestCase):
         Job.objects.create(name='testjob', state=Job.STATES.READY, created=datetime.now())
         Job.objects.create(name='testjob', state=Job.STATES.PROCESSING, created=datetime.now())
         expected = Job.objects.create(name='testjob', state=Job.STATES.READY, created=datetime.now() - timedelta(minutes=1))
+
+        self.assertEqual(Job.objects.get_ready_or_none(), expected)
+
+    def test_get_next_ready_job_created(self):
+        """
+        Created jobs should be picked too
+        """
+        self.assertTrue(Job.objects.get_ready_or_none() is None)
+
+        Job.objects.create(name='testjob', state=Job.STATES.NEW, created=datetime.now())
+        Job.objects.create(name='testjob', state=Job.STATES.PROCESSING, created=datetime.now())
+        expected = Job.objects.create(name='testjob', state=Job.STATES.NEW, created=datetime.now() - timedelta(minutes=1))
 
         self.assertEqual(Job.objects.get_ready_or_none(), expected)
 

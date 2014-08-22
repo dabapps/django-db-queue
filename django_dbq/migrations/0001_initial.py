@@ -14,7 +14,7 @@ class Migration(SchemaMigration):
             ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, db_index=True, blank=True)),
             ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('state', self.gf('django.db.models.fields.CharField')(default='READY', max_length=20, db_index=True)),
+            ('state', self.gf('django.db.models.fields.CharField')(default='NEW', max_length=20, db_index=True)),
             ('next_task', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
             ('workspace', self.gf('jsonfield.fields.JSONField')(null=True)),
         ))
@@ -34,7 +34,7 @@ class Migration(SchemaMigration):
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'next_task': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'state': ('django.db.models.fields.CharField', [], {'default': "'READY'", 'max_length': '20', 'db_index': 'True'}),
+            'state': ('django.db.models.fields.CharField', [], {'default': "'NEW'", 'max_length': '20', 'db_index': 'True'}),
             'workspace': ('jsonfield.fields.JSONField', [], {'null': 'True'})
         }
     }

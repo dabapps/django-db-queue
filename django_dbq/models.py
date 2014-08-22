@@ -31,7 +31,7 @@ class JobManager(models.Manager):
         retries_left = max_retries
         while True:
             try:
-                return self.select_for_update().filter(state=Job.STATES.READY).first()
+                return self.select_for_update().filter(state__in=(Job.STATES.READY, Job.STATES.NEW)).first()
             except Exception as e:
                 if retries_left == 0:
                     raise
@@ -41,13 +41,13 @@ class JobManager(models.Manager):
 
 class Job(models.Model):
 
-    STATES = Choices("READY", "PROCESSING", "FAILED", "COMPLETE")
+    STATES = Choices("NEW", "READY", "PROCESSING", "FAILED", "COMPLETE")
 
     id = uuidfield.UUIDField(primary_key=True, auto=True, db_index=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
-    state = models.CharField(max_length=20, choices=STATES, default=STATES.READY, db_index=True)
+    state = models.CharField(max_length=20, choices=STATES, default=STATES.NEW, db_index=True)
     next_task = models.CharField(max_length=100, blank=True)
     workspace = JSONField(null=True)
 
