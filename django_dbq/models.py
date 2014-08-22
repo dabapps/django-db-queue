@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 
 class JobManager(models.Manager):
 
-    def get_ready_or_none(self, max_retries=3):
+    def get_ready_or_none(self, queue_name, max_retries=3):
         """
-        Get a job in state READY or NEW. Supports retrying in case of database deadlock
+        Get a job in state READY or NEW for a given queue. Supports retrying in case of database deadlock
 
         See https://dev.mysql.com/doc/refman/5.0/en/innodb-deadlocks.html
 
@@ -31,7 +31,7 @@ class JobManager(models.Manager):
         retries_left = max_retries
         while True:
             try:
-                return self.select_for_update().filter(state__in=(Job.STATES.READY, Job.STATES.NEW)).first()
+                return self.select_for_update().filter(queue_name=queue_name, state__in=(Job.STATES.READY, Job.STATES.NEW)).first()
             except Exception as e:
                 if retries_left == 0:
                     raise

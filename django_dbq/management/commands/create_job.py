@@ -44,4 +44,4 @@ class Command(BaseCommand):
             kwargs['queue_name'] = queue_name
 
         job = Job.objects.create(**kwargs)
-        self.stdout.write('Created job: "%s", id=%s' % (job.name, job.pk))
+        self.stdout.write('Created job: "%s", id=%s for queue "%s"' % (job.name, job.pk, queue_name if queue_name else 'default'))

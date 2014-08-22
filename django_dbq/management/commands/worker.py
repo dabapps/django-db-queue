@@ -10,15 +10,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def process_job():
-    """This function grabs the next available job, and runs its next task."""
+def process_job(queue_name):
+    """This function grabs the next available job for a given queue, and runs its next task."""
 
     with transaction.atomic():
-        job = Job.objects.get_ready_or_none()
+        job = Job.objects.get_ready_or_none(queue_name)
         if not job:
             return
 
-        logger.info('Processing job: name="%s" id=%s state=%s next_task=%s', job.name, job.pk, job.state, job.next_task)
+        logger.info('Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s', job.name, queue_name, job.pk, job.state, job.next_task)
         job.state = Job.STATES.PROCESSING
         job.save()
 
@@ -55,9 +55,13 @@ class Worker(WorkerProcessBase):
 
     process_title = "jobworker"
 
+    def __init__(self, name):
+        self.queue_name = name
+        super(Worker, self).__init__()
+
     def do_work(self):
         sleep(1)
-        process_job()
+        process_job(self.queue_name)
 
 
 class Command(NoArgsCommand):
@@ -65,6 +69,12 @@ class Command(NoArgsCommand):
     help = "Run a queue worker process"
 
     def handle_noargs(self, **options):
+        self.handle('default')
+
+    def handle(self, *args, **options):
+        if len(args) != 1:
+            raise CommandError("Please supply a single queue job name")
+
         logger.info("Starting job worker")
         worker = Worker()
         worker.run()

@@ -66,25 +66,25 @@ class JobTestCase(TestCase):
         self.assertEqual(job.state, Job.STATES.NEW)
 
     def test_get_next_ready_job(self):
-        self.assertTrue(Job.objects.get_ready_or_none() is None)
+        self.assertTrue(Job.objects.get_ready_or_none('default') is None)
 
         Job.objects.create(name='testjob', state=Job.STATES.READY, created=datetime.now())
         Job.objects.create(name='testjob', state=Job.STATES.PROCESSING, created=datetime.now())
         expected = Job.objects.create(name='testjob', state=Job.STATES.READY, created=datetime.now() - timedelta(minutes=1))
 
-        self.assertEqual(Job.objects.get_ready_or_none(), expected)
+        self.assertEqual(Job.objects.get_ready_or_none('default'), expected)
 
     def test_get_next_ready_job_created(self):
         """
         Created jobs should be picked too
         """
-        self.assertTrue(Job.objects.get_ready_or_none() is None)
+        self.assertTrue(Job.objects.get_ready_or_none('default') is None)
 
         Job.objects.create(name='testjob', state=Job.STATES.NEW, created=datetime.now())
         Job.objects.create(name='testjob', state=Job.STATES.PROCESSING, created=datetime.now())
         expected = Job.objects.create(name='testjob', state=Job.STATES.NEW, created=datetime.now() - timedelta(minutes=1))
 
-        self.assertEqual(Job.objects.get_ready_or_none(), expected)
+        self.assertEqual(Job.objects.get_ready_or_none('default'), expected)
 
 
 @override_settings(JOBS={'testjob': {'tasks': ['a', 'b', 'c']}})
@@ -106,7 +106,7 @@ class ProcessJobTestCase(TestCase):
 
     def test_process_job(self):
         job = Job.objects.create(name='testjob')
-        process_job()
+        process_job('default')
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.COMPLETE)
 
@@ -133,7 +133,7 @@ class JobFailureHookTestCase(TestCase):
 
     def test_failure_hook(self):
         job = Job.objects.create(name='testjob')
-        process_job()
+        process_job('default')
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.FAILED)
         self.assertEqual(job.workspace['output'], 'failure hook ran')
