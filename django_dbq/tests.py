@@ -65,6 +65,11 @@ class JobTestCase(TestCase):
         job = Job(name='testjob')
         self.assertEqual(job.state, Job.STATES.NEW)
 
+    def test_create_job_with_queue(self):
+        job = Job(name='testjob', queue_name='lol')
+        self.assertEqual(job.state, Job.STATES.NEW)
+        self.assertEqual(job.queue_name, 'lol')
+
     def test_get_next_ready_job(self):
         self.assertTrue(Job.objects.get_ready_or_none('default') is None)
 
@@ -109,6 +114,15 @@ class ProcessJobTestCase(TestCase):
         process_job('default')
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.COMPLETE)
+
+    def test_process_job_wrong_queue(self):
+        """
+        Processing a different queue shouldn't touch our other job
+        """
+        job = Job.objects.create(name='testjob', queue_name='lol')
+        process_job('default')
+        job = Job.objects.get()
+        self.assertEqual(job.state, Job.STATES.NEW)
 
 
 @override_settings(JOBS={'testjob': {'tasks': ['django_dbq.tests.test_task'], 'creation_hook': 'django_dbq.tests.creation_hook'}})
