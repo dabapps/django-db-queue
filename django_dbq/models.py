@@ -14,7 +14,7 @@ class JobManager(models.Manager):
 
     def get_ready_or_none(self, max_retries=3):
         """
-        Get a job in state READY. Supports retrying in case of database deadlock
+        Get a job in state READY or NEW. Supports retrying in case of database deadlock
 
         See https://dev.mysql.com/doc/refman/5.0/en/innodb-deadlocks.html
 
@@ -50,6 +50,7 @@ class Job(models.Model):
     state = models.CharField(max_length=20, choices=STATES, default=STATES.NEW, db_index=True)
     next_task = models.CharField(max_length=100, blank=True)
     workspace = JSONField(null=True)
+    queue_name = models.CharField(max_length=20, default='default', db_index=True)
 
     class Meta:
         ordering = ['-created']

@@ -7,6 +7,7 @@ DATABASES = {
 
 INSTALLED_APPS = (
     'django_dbq',
+    'south'
 )
 
 MIDDLEWARE_CLASSES = (

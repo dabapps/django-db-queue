@@ -9,7 +9,7 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding model 'Job'
-        db.create_table(u'core_job', (
+        db.create_table(u'django_dbq_job', (
             ('id', self.gf('uuidfield.fields.UUIDField')(unique=True, max_length=32, primary_key=True, db_index=True)),
             ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, db_index=True, blank=True)),
             ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
@@ -17,26 +17,28 @@ class Migration(SchemaMigration):
             ('state', self.gf('django.db.models.fields.CharField')(default='NEW', max_length=20, db_index=True)),
             ('next_task', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
             ('workspace', self.gf('jsonfield.fields.JSONField')(null=True)),
+            ('queue_name', self.gf('django.db.models.fields.CharField')(default='default', max_length=20, db_index=True)),
         ))
-        db.send_create_signal(u'core', ['Job'])
+        db.send_create_signal(u'django_dbq', ['Job'])
 
 
     def backwards(self, orm):
         # Deleting model 'Job'
-        db.delete_table(u'core_job')
+        db.delete_table(u'django_dbq_job')
 
 
     models = {
-        u'core.job': {
+        u'django_dbq.job': {
             'Meta': {'ordering': "['-created']", 'object_name': 'Job'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'db_index': 'True', 'blank': 'True'}),
             'id': ('uuidfield.fields.UUIDField', [], {'unique': 'True', 'max_length': '32', 'primary_key': 'True', 'db_index': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'next_task': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
+            'queue_name': ('django.db.models.fields.CharField', [], {'default': "'default'", 'max_length': '20', 'db_index': 'True'}),
             'state': ('django.db.models.fields.CharField', [], {'default': "'NEW'", 'max_length': '20', 'db_index': 'True'}),
             'workspace': ('jsonfield.fields.JSONField', [], {'null': 'True'})
         }
     }
 
-    complete_apps = ['core']
+    complete_apps = ['django_dbq']

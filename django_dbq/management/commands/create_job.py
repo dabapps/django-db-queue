@@ -16,7 +16,10 @@ class Command(BaseCommand):
 
     option_list = BaseCommand.option_list + (
         make_option('--workspace',
-                    help='JSON-formatted initial command workspace'),)
+                    help='JSON-formatted initial command workspace'),
+        make_option('--queue_name',
+                    help='A specific queue to add this job to'),
+    )
 
     def handle(self, *args, **options):
         if len(args) != 1:
@@ -30,5 +33,15 @@ class Command(BaseCommand):
         if workspace:
             workspace = json.loads(workspace)
 
-        job = Job.objects.create(name=name, workspace=workspace)
+        queue_name = options['queue_name']
+
+        kwargs = {
+            'name': name,
+            'workspace': workspace,
+        }
+
+        if queue_name:
+            kwargs['queue_name'] = queue_name
+
+        job = Job.objects.create(**kwargs)
         self.stdout.write('Created job: "%s", id=%s' % (job.name, job.pk))
