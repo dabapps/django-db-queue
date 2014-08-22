@@ -8,9 +8,9 @@ import os
 import sys
 
 
-name = 'django_dbq'
+name = 'django-db-queue'
 package = 'django_dbq'
-description = 'Simple database-backed queue system'
+description = 'Simple database-backed job queue system'
 url = 'http://www.dabapps.com'
 author = 'DabApps'
 author_email = 'contact@dabapps.com'
@@ -23,7 +23,7 @@ install_requires = [
     'simplesignals==0.3.0'
 ]
 
-long_description = """Simple database-backed queue system"""
+long_description = """Simple database-backed job queue system"""
 
 def get_version(package):
     """
