@@ -1,5 +1,5 @@
 from django.conf import settings
-from django_dbq.apps.core.models import Job
+from django_dbq.models import Job
 from rest_framework import serializers
 import json
 

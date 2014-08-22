@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django_dbq.apps.core.models import Job
+from django_dbq.models import Job
 from optparse import make_option
 import json
 import logging

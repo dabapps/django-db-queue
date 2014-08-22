@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.core.management.base import NoArgsCommand
 from django.utils.module_loading import import_by_path
-from django_dbq.apps.core.models import Job
+from django_dbq.models import Job
 from simplesignals.process import WorkerProcessBase
 from time import sleep
 import logging

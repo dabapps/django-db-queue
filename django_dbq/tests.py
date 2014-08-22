@@ -1,14 +1,10 @@
 from datetime import datetime, timedelta
 from django.core.management import call_command, CommandError
 from django.core.urlresolvers import reverse
-from django.test import TestCase, LiveServerTestCase
+from django.test import TestCase
 from django.test.utils import override_settings
-from django_dbq.apps.core.management.commands.worker import process_job
-from django_dbq.apps.core.models import Job
-from django_dbq.apps.core.utils.requests_storage import SessionStorage
-from requests import Session
-from rest_framework import status
-from rest_framework.test import APITestCase
+from django_dbq.management.commands.worker import process_job
+from django_dbq.models import Job
 from StringIO import StringIO
 
 
@@ -31,32 +27,6 @@ def failure_hook(job, exception):
 
 def creation_hook(job):
     job.workspace['output'] = 'creation hook ran'
-
-
-@override_settings(JOBS={'testjob': {'tasks': ['a']}})
-class JobAPITestCase(APITestCase):
-
-    def test_create_job(self):
-        url = reverse('create_job')
-        response = self.client.post(url, {'name': 'testjob'})
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue('url' in response.data)
-        self.assertEqual(Job.objects.count(), 1)
-        job = Job.objects.get()
-        self.assertEqual(job.name, 'testjob')
-        self.assertEqual(job.state, job.STATES.READY)
-
-    def test_create_job_with_invalid_name(self):
-        url = reverse('create_job')
-        response = self.client.post(url, {'name': 'some-other-job-name'})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_job_detail(self):
-        job = Job.objects.create(name='testjob')
-        url = reverse('job_detail', kwargs={'pk': job.pk})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['name'], 'testjob')
 
 
 @override_settings(JOBS={'testjob': {'tasks': ['a']}})
@@ -112,7 +82,7 @@ class JobTaskTestCase(TestCase):
         self.assertEqual(job.next_task, '')
 
 
-@override_settings(JOBS={'testjob': {'tasks': ['importer.apps.core.tests.test_task']}})
+@override_settings(JOBS={'testjob': {'tasks': ['django_dbq.tests.test_task']}})
 class ProcessJobTestCase(TestCase):
 
     def test_process_job(self):
@@ -122,7 +92,7 @@ class ProcessJobTestCase(TestCase):
         self.assertEqual(job.state, Job.STATES.COMPLETE)
 
 
-@override_settings(JOBS={'testjob': {'tasks': ['importer.apps.core.tests.test_task'], 'creation_hook': 'importer.apps.core.tests.creation_hook'}})
+@override_settings(JOBS={'testjob': {'tasks': ['django_dbq.tests.test_task'], 'creation_hook': 'django_dbq.tests.creation_hook'}})
 class JobCreationHookTestCase(TestCase):
 
     def test_creation_hook(self):
@@ -139,7 +109,7 @@ class JobCreationHookTestCase(TestCase):
         self.assertEqual(job.workspace['output'], 'creation hook output removed')
 
 
-@override_settings(JOBS={'testjob': {'tasks': ['importer.apps.core.tests.failing_task'], 'failure_hook': 'importer.apps.core.tests.failure_hook'}})
+@override_settings(JOBS={'testjob': {'tasks': ['django_dbq.tests.failing_task'], 'failure_hook': 'django_dbq.tests.failure_hook'}})
 class JobFailureHookTestCase(TestCase):
 
     def test_failure_hook(self):
@@ -148,41 +118,3 @@ class JobFailureHookTestCase(TestCase):
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.FAILED)
         self.assertEqual(job.workspace['output'], 'failure hook ran')
-
-
-@override_settings(JOBS={'testjob': {'tasks': ['importer.apps.core.tests.workspace_test_task']}})
-class WorkspaceTestCase(APITestCase):
-
-    def test_basic_args(self):
-        url = reverse('create_job')
-        self.client.post(url, {'name': 'testjob', 'workspace': '{"input": "input"}'})
-        process_job()
-        job = Job.objects.get()
-        self.assertEqual(job.workspace['output'], 'input-output')
-
-    def test_json_post(self):
-        """Ensures that we can also create a workspace by sending JSON"""
-        url = reverse('create_job')
-        self.client.post(url, {'name': 'testjob', 'workspace': {'input': 'input'}}, format='json')
-        process_job()
-        job = Job.objects.get()
-        self.assertEqual(job.workspace['output'], 'input-output')
-
-
-class RequestsStorageTestCase(LiveServerTestCase):
-
-    def test_requests_storage(self):
-        session = Session()
-        storage = SessionStorage(session)
-        url = "%s/" % self.live_server_url
-        session.get(url)
-        request_list = storage.get_requests()
-        self.assertEqual(len(request_list), 1)
-        self.assertEqual(request_list[0]['request']['url'], url)
-        self.assertEqual(request_list[0]['response']['status_code'], 200)
-
-        for _ in range(5):
-            session.get(url)
-
-        request_list = storage.get_requests()
-        self.assertEqual(len(request_list), 6)

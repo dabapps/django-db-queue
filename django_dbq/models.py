@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.module_loading import import_by_path
-from django_dbq.apps.core.tasks import get_next_task_name, get_failure_hook_name, get_creation_hook_name
+from django_dbq.tasks import get_next_task_name, get_failure_hook_name, get_creation_hook_name
 from jsonfield import JSONField
 from model_utils import Choices
 import logging

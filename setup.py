@@ -15,7 +15,13 @@ url = 'http://www.dabapps.com'
 author = 'DabApps'
 author_email = 'contact@dabapps.com'
 license = 'BSD'
-install_requires = ['django>=1.6']
+install_requires = [
+    'django-model-utils==1.5.0',
+    'django-uuidfield==0.4.0',
+    'jsonfield==0.9.20',
+    'Django>=1.6',
+    'simplesignals==0.3.0'
+]
 
 long_description = """Simple database-backed queue system"""
 
