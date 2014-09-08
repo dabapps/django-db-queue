@@ -59,10 +59,14 @@ Jobs have a `state` field which can have one of the following values:
 
 For debugging/development purposes, a simple management command is supplied to create jobs:
 
-    manage.py create_job <job_name> --workspace '{"key": "value"}'
+    manage.py create_job <job_name> --queue_name 'my_queue_name' --workspace '{"key": "value"}'
 
 The `workspace` flag is optional. If supplied, it must be a valid JSON string.
 
+`queue_name` is optional and defaults to `default`
+
 To start a worker:
 
-    manage.py worker
+    manage.py worker [queue_name]
+
+`queue_name` is optional, and will default to `default`
