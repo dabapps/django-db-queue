@@ -1,11 +1,12 @@
 django-db-queue
 ==========
-[![Build Status](https://magnum.travis-ci.com/dabapps/django-db-queue.svg?token=Vjwq9pDHXxGNhnyuktQ5)](https://magnum.travis-ci.com/dabapps/django-db-queue)
+[![Build Status](https://travis-ci.org/dabapps/django-db-queue.svg)](https://travis-ci.org/dabapps/django-db-queue)
 
 Simple databased-backed job queue. Jobs are defined in your settings, and are processed by management commands.
 
-
 Asynchronous tasks are run via a *job queue*. This system is designed to support multi-step job workflows.
+
+This is not yet production-ready, and the API is liable to change. Use at your own risk.
 
 ### Terminology
 
