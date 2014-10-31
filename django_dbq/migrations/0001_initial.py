@@ -1,44 +1,32 @@
 # -*- coding: utf-8 -*-
-from south.utils import datetime_utils as datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import jsonfield.fields
+import uuidfield.fields
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Job'
-        db.create_table(u'django_dbq_job', (
-            ('id', self.gf('uuidfield.fields.UUIDField')(unique=True, max_length=32, primary_key=True, db_index=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, db_index=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('state', self.gf('django.db.models.fields.CharField')(default='NEW', max_length=20, db_index=True)),
-            ('next_task', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('workspace', self.gf('jsonfield.fields.JSONField')(null=True)),
-            ('queue_name', self.gf('django.db.models.fields.CharField')(default='default', max_length=20, db_index=True)),
-        ))
-        db.send_create_signal(u'django_dbq', ['Job'])
+    dependencies = [
+    ]
 
-
-    def backwards(self, orm):
-        # Deleting model 'Job'
-        db.delete_table(u'django_dbq_job')
-
-
-    models = {
-        u'django_dbq.job': {
-            'Meta': {'ordering': "['-created']", 'object_name': 'Job'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'db_index': 'True', 'blank': 'True'}),
-            'id': ('uuidfield.fields.UUIDField', [], {'unique': 'True', 'max_length': '32', 'primary_key': 'True', 'db_index': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'next_task': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'queue_name': ('django.db.models.fields.CharField', [], {'default': "'default'", 'max_length': '20', 'db_index': 'True'}),
-            'state': ('django.db.models.fields.CharField', [], {'default': "'NEW'", 'max_length': '20', 'db_index': 'True'}),
-            'workspace': ('jsonfield.fields.JSONField', [], {'null': 'True'})
-        }
-    }
-
-    complete_apps = ['django_dbq']
+    operations = [
+        migrations.CreateModel(
+            name='Job',
+            fields=[
+                ('id', uuidfield.fields.UUIDField(primary_key=True, serialize=False, editable=False, max_length=32, blank=True, unique=True, db_index=True)),
+                ('created', models.DateTimeField(auto_now_add=True, db_index=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+                ('name', models.CharField(max_length=100)),
+                ('state', models.CharField(default=b'NEW', max_length=20, db_index=True, choices=[(b'NEW', b'NEW'), (b'READY', b'READY'), (b'PROCESSING', b'PROCESSING'), (b'FAILED', b'FAILED'), (b'COMPLETE', b'COMPLETE')])),
+                ('next_task', models.CharField(max_length=100, blank=True)),
+                ('workspace', jsonfield.fields.JSONField(null=True)),
+                ('queue_name', models.CharField(default=b'default', max_length=20, db_index=True)),
+            ],
+            options={
+                'ordering': ['-created'],
+            },
+            bases=(models.Model,),
+        ),
+    ]
