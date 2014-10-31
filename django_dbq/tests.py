@@ -59,6 +59,13 @@ class JobManagementCommandTestCase(TestCase):
 
 
 @override_settings(JOBS={'testjob': {'tasks': ['a']}})
+class WorkerManagementCommandTestCase(TestCase):
+
+    def test_worker_no_args(self):
+        call_command('worker', stdout=StringIO())
+
+
+@override_settings(JOBS={'testjob': {'tasks': ['a']}})
 class JobTestCase(TestCase):
 
     def test_create_job(self):
