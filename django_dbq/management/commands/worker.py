@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import CommandError, NoArgsCommand
 from django.utils.module_loading import import_by_path
 from django_dbq.models import Job
 from simplesignals.process import WorkerProcessBase
