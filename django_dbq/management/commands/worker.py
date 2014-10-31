@@ -1,13 +1,17 @@
 from django.db import transaction
-from django.core.management.base import CommandError, NoArgsCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils.module_loading import import_by_path
 from django_dbq.models import Job
+from optparse import make_option
 from simplesignals.process import WorkerProcessBase
 from time import sleep
 import logging
 
 
 logger = logging.getLogger(__name__)
+
+
+DEFAULT_QUEUE_NAME = 'default'
 
 
 def process_job(queue_name):
@@ -64,17 +68,32 @@ class Worker(WorkerProcessBase):
         process_job(self.queue_name)
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
 
     help = "Run a queue worker process"
 
-    def handle_noargs(self, **options):
-        self.handle('default')
+    option_list = BaseCommand.option_list + (
+        make_option('--dry-run',
+            action='store_true',
+            dest='dry_run',
+            default=False,
+            help="Don't actually start the worker. Used for testing."),
+        )
 
     def handle(self, *args, **options):
+        if not args:
+            args = (DEFAULT_QUEUE_NAME,)
+
         if len(args) != 1:
             raise CommandError("Please supply a single queue job name")
 
-        logger.info("Starting job worker")
-        worker = Worker()
+        queue_name = args[0]
+
+        self.stdout.write("Starting job worker for queue \"%s\"" % queue_name)
+
+        worker = Worker(queue_name)
+
+        if options['dry_run']:
+            return
+
         worker.run()

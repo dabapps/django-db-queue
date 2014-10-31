@@ -62,7 +62,11 @@ class JobManagementCommandTestCase(TestCase):
 class WorkerManagementCommandTestCase(TestCase):
 
     def test_worker_no_args(self):
-        call_command('worker', stdout=StringIO())
+        stdout = StringIO()
+        call_command('worker', dry_run=True, stdout=stdout)
+        output = stdout.getvalue()
+        self.assertTrue('Starting job worker' in output)
+        self.assertTrue('default' in output)
 
 
 @override_settings(JOBS={'testjob': {'tasks': ['a']}})
