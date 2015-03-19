@@ -1,6 +1,7 @@
 django-db-queue
 ==========
 [![Build Status](https://travis-ci.org/dabapps/django-db-queue.svg)](https://travis-ci.org/dabapps/django-db-queue)
+![pypi release](https://img.shields.io/pypi/v/django-db-queue.svg)
 
 Simple databased-backed job queue. Jobs are defined in your settings, and are processed by management commands.
 
