@@ -8,13 +8,52 @@ Asynchronous tasks are run via a *job queue*. This system is designed to support
 
 This is not yet production-ready, and the API is liable to change. Use at your own risk.
 
-### Terminology
+## Getting Started
 
-#### Job
+### Describe your job
+
+In e.g. project.common.jobs:
+
+```python
+import time
+
+def my_task(job):
+    logger.info("Working hard...")
+    time.sleep(10)
+    logger.info("Job's done!")
+```
+
+### Set up your job
+
+In project.settings:
+
+```python
+JOBS = {
+    'my_job': ['project.common.jobs.my_task'],
+}
+```
+
+### Start the worker
+
+In another terminal:
+
+`python manage.py worker`
+
+### Create a job
+
+Using the name you configured for your job in your settings, create an instance of Job.
+
+```python
+Job.objects.create(name='my_job')
+```
+
+## Terminology
+
+### Job
 
 The top-level abstraction of a standalone piece of work. Jobs are stored in the database (ie they are represented as Django model instances).
 
-#### Task
+### Task
 
 Jobs are processed to completion by *tasks*. These are simply Python functions, which must take a single argument - the `Job` instance being processed. A single job will often require processing by more than one task to be completed fully. Creating the task functions is the responsibility of the developer. For example:
 
@@ -22,7 +61,7 @@ Jobs are processed to completion by *tasks*. These are simply Python functions, 
         logger.info("Doing some hard work")
         do_some_hard_work()
 
-#### Workspace
+### Workspace
 
 The *workspace* is an area that tasks within a single job can use to communicate with each other. It is implemented as a Python dictionary, available on the `job` instance passed to tasks as `job.workspace`. The initial workspace of a job can be empty, or can contain some parameters that the tasks require (for example, API access tokens, account IDs etc). A single task can edit the workspace, and the modified workspace will be passed on to the next task in the sequence. For example:
 
@@ -32,7 +71,13 @@ The *workspace* is an area that tasks within a single job can use to communicate
     def my_second_task(job):
         logger.info("Task 1 says: %s" % job.workspace['message'])
 
-#### Worker process
+When creating a Job, the workspace is passed as a keyword argument:
+
+```python
+Job.objects.create(name='my_job', workspace={'key': value})
+```
+
+### Worker process
 
 A *worker process* is a long-running process, implemented as a Django management command, which is responsible for executing the tasks associated with a job. There may be many worker processes running concurrently in the final system. Worker processes wait for a new job to be created in the database, and call the each associated task in the correct sequeunce.. A worker can be started using `python manage.py worker`, and a single worker instance is included in the development `procfile`.
 
