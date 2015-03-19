@@ -83,10 +83,10 @@ A *worker process* is a long-running process, implemented as a Django management
 
 ### Configuration
 
-Jobs are configured in the Django `settings.py` file. The `JOBS` setting is a dictionary mapping a *job name* (eg `import_hats`) to a *list* of one or more task function paths. For example:
+Jobs are configured in the Django `settings.py` file. The `JOBS` setting is a dictionary mapping a *job name* (eg `import_cats`) to a *list* of one or more task function paths. For example:
 
     JOBS = {
-        'import_hats': ['apps.hat_hatter.import_hats.step_one', 'apps.hat_hatter.import_hats.step_two'],
+        'import_cats': ['apps.cat_importer.import_cats.step_one', 'apps.cat_importer.import_cats.step_two'],
     }
 
 ### Job states
