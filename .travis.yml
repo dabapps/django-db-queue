@@ -1,6 +1,14 @@
 language: python
 python:
-- "2.7"
+- '2.7'
 install:
 - pip install -r requirements.txt
 script: python manage.py test
+deploy:
+  provider: pypi
+  user: dabapps
+  password:
+    secure: YkRDJO+QK2Rr3AJwmxoghTWCCTZFLfXUlqky/my6g7oeMI5Q/F2WzNBmvr84v069fckobHhlN4hhH/JFEaRnCNuYmPhFdiNQh5M5cP/qhUqqh7LsMiX5mJSfM6yCp+rAL6F+yb5r59t3IQKmXKiFzRm/AuS4nHINDFHXwaPjWTw=
+  on:
+    tags: true
+    repo: dabapps/django-db-queue
