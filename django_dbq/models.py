@@ -3,11 +3,15 @@ from django.utils.module_loading import import_by_path
 from django_dbq.tasks import get_next_task_name, get_failure_hook_name, get_creation_hook_name
 from jsonfield import JSONField
 from model_utils import Choices
+import datetime
 import logging
 import uuid
 
 
 logger = logging.getLogger(__name__)
+
+
+DELETE_JOBS_AFTER_HOURS = 24
 
 
 class JobManager(models.Manager):
@@ -37,6 +41,15 @@ class JobManager(models.Manager):
                     raise
                 retries_left -= 1
                 logger.warn("Caught %s when looking for a READY job, retrying %s more times", str(e), retries_left)
+
+    def delete_old(self):
+        """
+        Delete all jobs older than DELETE_JOBS_AFTER_HOURS
+        """
+        delete_jobs_in_states = [Job.STATES.FAILED, Job.STATES.COMPLETE]
+        delete_jobs_created_before = datetime.datetime.utcnow() - datetime.timedelta(hours=DELETE_JOBS_AFTER_HOURS)
+        logger.info("Deleting all job in states %s created before %s", ", ".join(delete_jobs_in_states), delete_jobs_created_before.isoformat())
+        Job.objects.filter(state__in=delete_jobs_in_states, created__lte=delete_jobs_created_before).delete()
 
 
 class Job(models.Model):
