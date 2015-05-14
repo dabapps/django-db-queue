@@ -109,6 +109,11 @@ Jobs have a `state` field which can have one of the following values:
 
 #### Management commands
 
+There is a management command, `manage.py delete_old_jobs`, which deletes any
+jobs from the database which are in state `COMPLETE` or `FAILED` and were
+created more than 24 hours ago. This could be run, for example, as a cron task,
+to ensure the jobs table remains at a reasonable size.
+
 For debugging/development purposes, a simple management command is supplied to create jobs:
 
     manage.py create_job <job_name> --queue_name 'my_queue_name' --workspace '{"key": "value"}'

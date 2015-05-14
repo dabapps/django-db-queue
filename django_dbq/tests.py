@@ -171,3 +171,30 @@ class JobFailureHookTestCase(TestCase):
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.FAILED)
         self.assertEqual(job.workspace['output'], 'failure hook ran')
+
+
+@override_settings(JOBS={'testjob': {'tasks': ['a']}})
+class DeleteOldJobsTestCase(TestCase):
+
+    def test_delete_old_jobs(self):
+        two_days_ago = datetime.utcnow() - timedelta(days=2)
+
+        j1 = Job.objects.create(name='testjob', state=Job.STATES.COMPLETE)
+        j1.created = two_days_ago
+        j1.save()
+
+        j2 = Job.objects.create(name='testjob', state=Job.STATES.FAILED)
+        j2.created = two_days_ago
+        j2.save()
+
+        j3 = Job.objects.create(name='testjob', state=Job.STATES.NEW)
+        j3.created = two_days_ago
+        j3.save()
+
+        j4 = Job.objects.create(name='testjob', state=Job.STATES.COMPLETE)
+
+        Job.objects.delete_old()
+
+        self.assertEqual(Job.objects.count(), 2)
+        self.assertTrue(j3 in Job.objects.all())
+        self.assertTrue(j4 in Job.objects.all())
