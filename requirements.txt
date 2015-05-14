@@ -1,5 +1,4 @@
 django-model-utils==1.5.0
-django-uuidfield==0.4.0
 jsonfield==0.9.20
-Django>=1.7
+Django>=1.8
 simplesignals==0.3.0

@@ -4,7 +4,7 @@ from django_dbq.tasks import get_next_task_name, get_failure_hook_name, get_crea
 from jsonfield import JSONField
 from model_utils import Choices
 import logging
-import uuidfield
+import uuid
 
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class Job(models.Model):
 
     STATES = Choices("NEW", "READY", "PROCESSING", "FAILED", "COMPLETE")
 
-    id = uuidfield.UUIDField(primary_key=True, auto=True, db_index=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
