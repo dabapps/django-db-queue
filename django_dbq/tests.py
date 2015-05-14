@@ -5,7 +5,10 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django_dbq.management.commands.worker import process_job
 from django_dbq.models import Job
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 
 def test_task(job=None):
