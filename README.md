@@ -127,3 +127,7 @@ To start a worker:
     manage.py worker [queue_name]
 
 `queue_name` is optional, and will default to `default`
+
+## Testing
+
+It may be necessary to supply a DATABASE_PORT environment variable.
