@@ -7,6 +7,11 @@ import datetime
 import logging
 import uuid
 
+try:
+    from django.db.models import UUIDField
+except ImportError:
+    from django_dbq.fields import UUIDField
+
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +61,7 @@ class Job(models.Model):
 
     STATES = Choices("NEW", "READY", "PROCESSING", "FAILED", "COMPLETE")
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
