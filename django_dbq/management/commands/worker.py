@@ -6,6 +6,7 @@ from optparse import make_option
 from simplesignals.process import WorkerProcessBase
 from time import sleep
 import logging
+import multiprocessing
 
 
 logger = logging.getLogger(__name__)
@@ -14,18 +15,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_QUEUE_NAME = 'default'
 
 
-def process_job(queue_name):
-    """This function grabs the next available job for a given queue, and runs its next task."""
-
-    with transaction.atomic():
-        job = Job.objects.get_ready_or_none(queue_name)
-        if not job:
-            return
-
-        logger.info('Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s', job.name, queue_name, job.pk, job.state, job.next_task)
-        job.state = Job.STATES.PROCESSING
-        job.save()
-
+def run_next_task(job):
+    """Updates a job by running its next task"""
     try:
         task_function = import_by_path(job.next_task)
         task_function(job)
@@ -53,6 +44,23 @@ def process_job(queue_name):
     except:
         logger.error('Failed to save job: id=%s org=%s', job.pk, job.workspace.get('organisation_id'))
         raise
+
+
+def process_job(queue_name):
+    """This function grabs the next available job for a given queue, and runs its next task."""
+
+    with transaction.atomic():
+        job = Job.objects.get_ready_or_none(queue_name)
+        if not job:
+            return
+
+        logger.info('Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s', job.name, queue_name, job.pk, job.state, job.next_task)
+        job.state = Job.STATES.PROCESSING
+        job.save()
+
+    child = multiprocessing.Process(target=run_next_task, args=(job,))
+    child.start()
+    child.join()
 
 
 class Worker(WorkerProcessBase):
