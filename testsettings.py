@@ -1,7 +1,12 @@
+import os
+import pymysql
+pymysql.install_as_MySQLdb()
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'django_db_queue',
+        'PORT': os.getenv('DATABASE_PORT', 3306),
     },
 }
 

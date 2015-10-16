@@ -66,7 +66,7 @@ class Job(models.Model):
     queue_name = models.CharField(max_length=20, default='default', db_index=True)
 
     class Meta:
-        ordering = ['-created']
+        ordering = ['created']
 
     objects = JobManager()
 
@@ -100,3 +100,4 @@ class Job(models.Model):
             logger.info("Running creation hook %s for new job", creation_hook_name)
             creation_hook_function = import_by_path(creation_hook_name)
             creation_hook_function(self)
+

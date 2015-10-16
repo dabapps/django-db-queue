@@ -93,21 +93,29 @@ class JobTestCase(TestCase):
     def test_get_next_ready_job(self):
         self.assertTrue(Job.objects.get_ready_or_none('default') is None)
 
-        Job.objects.create(name='testjob', state=Job.STATES.READY, created=datetime.now())
-        Job.objects.create(name='testjob', state=Job.STATES.PROCESSING, created=datetime.now())
-        expected = Job.objects.create(name='testjob', state=Job.STATES.READY, created=datetime.now() - timedelta(minutes=1))
+        Job.objects.create(name='testjob', state=Job.STATES.READY)
+        Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
+        expected = Job.objects.create(name='testjob', state=Job.STATES.READY)
+        expected.created = datetime.now() - timedelta(minutes=1)
+        expected.save()
 
         self.assertEqual(Job.objects.get_ready_or_none('default'), expected)
 
     def test_get_next_ready_job_created(self):
         """
-        Created jobs should be picked too
+        Created jobs should be picked too.
+
+        We create three jobs, and expect the oldest in NEW or READY to be
+        selected by get_ready_or_none (the model is ordered by 'created' and the
+        query picks the .first())
         """
         self.assertTrue(Job.objects.get_ready_or_none('default') is None)
 
-        Job.objects.create(name='testjob', state=Job.STATES.NEW, created=datetime.now())
-        Job.objects.create(name='testjob', state=Job.STATES.PROCESSING, created=datetime.now())
-        expected = Job.objects.create(name='testjob', state=Job.STATES.NEW, created=datetime.now() - timedelta(minutes=1))
+        Job.objects.create(name='testjob', state=Job.STATES.NEW)
+        Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
+        expected = Job.objects.create(name='testjob', state=Job.STATES.NEW)
+        expected.created = datetime.now() - timedelta(minutes=1)
+        expected.save()
 
         self.assertEqual(Job.objects.get_ready_or_none('default'), expected)
 
