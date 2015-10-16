@@ -15,7 +15,13 @@ url = 'http://www.dabapps.com'
 author = 'DabApps'
 author_email = 'contact@dabapps.com'
 license = 'BSD'
-install_requires = []
+install_requires = [
+    "django-model-utils==2.3.1",
+    "django-uuidfield==0.5.0",
+    "jsonfield==1.0.3",
+    "Django>=1.7",
+    "simplesignals==0.3.0",
+]
 
 long_description = """Simple database-backed job queue system"""
 
