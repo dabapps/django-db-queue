@@ -10,7 +10,7 @@ import uuid
 try:
     from django.db.models import UUIDField
 except ImportError:
-    from uuidfield import UUIDField
+    from django_dbq.fields import UUIDField
 
 
 logger = logging.getLogger(__name__)
