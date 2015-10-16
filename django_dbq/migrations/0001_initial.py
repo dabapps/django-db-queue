@@ -5,6 +5,11 @@ from django.db import models, migrations
 import jsonfield.fields
 import uuid
 
+try:
+    from django.db.models import UUIDField
+except ImportError:
+    from uuidfield import UUIDField
+
 
 class Migration(migrations.Migration):
 
@@ -15,7 +20,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Job',
             fields=[
-                ('id', models.UUIDField(serialize=False, editable=False, default=uuid.uuid4, primary_key=True)),
+                ('id', UUIDField(serialize=False, editable=False, default=uuid.uuid4, primary_key=True)),
                 ('created', models.DateTimeField(db_index=True, auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
                 ('name', models.CharField(max_length=100)),
