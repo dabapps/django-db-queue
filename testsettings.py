@@ -1,13 +1,14 @@
+import dj_database_url
 import os
 import pymysql
 pymysql.install_as_MySQLdb()
 
+DEFAULT_DATABASE_URL = "mysql://localhost:{port}/django_db_queue".format(
+    port=os.getenv('DATABASE_PORT', 3306)
+)
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'django_db_queue',
-        'PORT': os.getenv('DATABASE_PORT', 3306),
-    },
+    'default': dj_database_url.config(default=DEFAULT_DATABASE_URL),
 }
 
 INSTALLED_APPS = (

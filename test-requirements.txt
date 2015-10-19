@@ -1,2 +1,4 @@
 -r requirements.txt
+dj-database-url==0.3.0
 pymysql==0.6.7
+psycopg2==2.6.1
