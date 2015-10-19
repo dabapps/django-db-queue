@@ -7,10 +7,7 @@ Simple databased-backed job queue. Jobs are defined in your settings, and are pr
 
 Asynchronous tasks are run via a *job queue*. This system is designed to support multi-step job workflows.
 
-This is not yet production-ready, and the API is liable to change. Use at your own risk.
-
-**NOTE**: Between version 0.0.1 and 0.0.2, the project was upgraded to support
-Python 3. This required switching to Django's built-in UUIDField, which was added in Django 1.8. The simplest way to upgrade it to drop the existing
+**NOTE**: This module uses differing implementations of UUIDField on Django 1.7 and 1.8 - a Python 3 shimmed django-uuidfield version on 1.7, and the built-in implementation on Django 1.8 and above. The simplest way to upgrade it is to drop the existing
 `django_dbq_job` table, delete the migration from `django_migrations`, and then
 re-run `manage.py migrate`.
 
