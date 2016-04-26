@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import transaction, close_old_connections
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.module_loading import import_by_path
 from django_dbq.models import Job
@@ -6,7 +6,6 @@ from optparse import make_option
 from simplesignals.process import WorkerProcessBase
 from time import sleep
 import logging
-import multiprocessing
 
 
 logger = logging.getLogger(__name__)
@@ -48,6 +47,7 @@ def run_next_task(job):
 
 def process_job(queue_name):
     """This function grabs the next available job for a given queue, and runs its next task."""
+    close_old_connections()
 
     with transaction.atomic():
         job = Job.objects.get_ready_or_none(queue_name)
@@ -58,9 +58,8 @@ def process_job(queue_name):
         job.state = Job.STATES.PROCESSING
         job.save()
 
-    child = multiprocessing.Process(target=run_next_task, args=(job,))
-    child.start()
-    child.join()
+    run_next_task(job)
+    close_old_connections()
 
 
 class Worker(WorkerProcessBase):
