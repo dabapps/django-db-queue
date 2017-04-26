@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string
 from django_dbq.tasks import get_next_task_name, get_failure_hook_name, get_creation_hook_name
 from jsonfield import JSONField
 from model_utils import Choices
@@ -103,6 +103,5 @@ class Job(models.Model):
         creation_hook_name = self.get_creation_hook_name()
         if creation_hook_name:
             logger.info("Running creation hook %s for new job", creation_hook_name)
-            creation_hook_function = import_by_path(creation_hook_name)
+            creation_hook_function = import_string(creation_hook_name)
             creation_hook_function(self)
-

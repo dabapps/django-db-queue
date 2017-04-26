@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from django.core.management import call_command, CommandError
-from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.utils import override_settings
 from django_dbq.management.commands.worker import process_job
@@ -73,7 +72,7 @@ class WorkerManagementCommandTestCase(TestCase):
 
     def test_worker_with_queue_name(self):
         stdout = StringIO()
-        call_command('worker', 'test_queue', dry_run=True, stdout=stdout)
+        call_command('worker', queue_name='test_queue', dry_run=True, stdout=stdout)
         output = stdout.getvalue()
         self.assertTrue('test_queue' in output)
 

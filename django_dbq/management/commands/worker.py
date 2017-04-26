@@ -1,8 +1,7 @@
 from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string
 from django_dbq.models import Job
-from optparse import make_option
 from simplesignals.process import WorkerProcessBase
 from time import sleep
 import logging
@@ -27,7 +26,7 @@ def process_job(queue_name):
         job.save()
 
     try:
-        task_function = import_by_path(job.next_task)
+        task_function = import_string(job.next_task)
         task_function(job)
         job.update_next_task()
         if not job.next_task:
@@ -41,7 +40,7 @@ def process_job(queue_name):
         failure_hook_name = job.get_failure_hook_name()
         if failure_hook_name:
             logger.info("Running failure hook %s for job id=%s", failure_hook_name, job.pk)
-            failure_hook_function = import_by_path(failure_hook_name)
+            failure_hook_function = import_string(failure_hook_name)
             failure_hook_function(job, exception)
         else:
             logger.info("No failure hook for job id=%s", job.pk)
@@ -72,12 +71,14 @@ class Command(BaseCommand):
 
     help = "Run a queue worker process"
 
-    option_list = BaseCommand.option_list + (
-        make_option('--dry-run',
+    def add_arguments(self, parser):
+        parser.add_argument('queue_name', nargs='?', default='default', type=str)
+        parser.add_argument(
+            '--dry-run',
             action='store_true',
             dest='dry_run',
             default=False,
-            help="Don't actually start the worker. Used for testing."),
+            help="Don't actually start the worker. Used for testing."
         )
 
     def handle(self, *args, **options):
@@ -87,7 +88,7 @@ class Command(BaseCommand):
         if len(args) != 1:
             raise CommandError("Please supply a single queue job name")
 
-        queue_name = args[0]
+        queue_name = options['queue_name']
 
         self.stdout.write("Starting job worker for queue \"%s\"" % queue_name)
 
