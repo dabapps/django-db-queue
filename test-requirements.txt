@@ -1,2 +1,2 @@
 -r requirements.txt
-pymysql==0.6.7
+pymysql==0.7.11

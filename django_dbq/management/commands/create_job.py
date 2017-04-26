@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django_dbq.models import Job
-from optparse import make_option
 import json
 import logging
 
@@ -14,12 +13,22 @@ class Command(BaseCommand):
     help = "Create a job"
     args = '<job_name>'
 
-    option_list = BaseCommand.option_list + (
-        make_option('--workspace',
-                    help='JSON-formatted initial command workspace'),
-        make_option('--queue_name',
-                    help='A specific queue to add this job to'),
-    )
+    def add_arguments(self, parser):
+        parser.add_argument('args', nargs='+')
+        parser.add_argument(
+            '--workspace',
+            action='store_true',
+            dest='workspace',
+            default=None,
+            help="JSON-formatted initial commandworkspace."
+        )
+        parser.add_argument(
+            '--queue_name',
+            action='store_true',
+            dest='queue_name',
+            default=None,
+            help="A specific queue to add this job to"
+        )
 
     def handle(self, *args, **options):
         if len(args) != 1:
