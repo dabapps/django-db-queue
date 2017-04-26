@@ -13,6 +13,19 @@ re-run `manage.py migrate`.
 
 ## Getting Started
 
+### Installation
+    
+Install from PIP
+    
+    pip install django-db-queue
+    
+Add `django_dbq` to your installed apps
+
+    INSTALLED_APPS = (
+        ...
+        'django_dbq',
+    )
+
 ### Describe your job
 
 In e.g. project.common.jobs:
