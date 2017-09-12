@@ -43,7 +43,9 @@ In project.settings:
 
 ```python
 JOBS = {
-    'my_job': ['project.common.jobs.my_task'],
+    'my_job': {
+        'tasks': ['project.common.jobs.my_task']
+    },
 }
 ```
 
