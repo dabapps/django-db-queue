@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='job',
-            options={'ordering': ['priority', 'created']},
+            options={'ordering': ['-priority', 'created']},
         ),
         migrations.AddField(
             model_name='job',

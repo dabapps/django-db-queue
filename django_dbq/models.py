@@ -74,7 +74,7 @@ class Job(models.Model):
     priority = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
-        ordering = ['priority', 'created']
+        ordering = ['-priority', 'created']
 
     objects = JobManager()
 
