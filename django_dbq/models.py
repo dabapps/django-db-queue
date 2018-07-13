@@ -71,7 +71,7 @@ class Job(models.Model):
     next_task = models.CharField(max_length=100, blank=True)
     workspace = JSONField(null=True)
     queue_name = models.CharField(max_length=20, default='default', db_index=True)
-    priority = models.PositiveSmallIntegerField(default=0, db_index=True)
+    priority = models.SmallIntegerField(default=0, db_index=True)
 
     class Meta:
         ordering = ['-priority', 'created']
