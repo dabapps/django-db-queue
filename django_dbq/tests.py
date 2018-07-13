@@ -205,3 +205,20 @@ class DeleteOldJobsTestCase(TestCase):
         self.assertEqual(Job.objects.count(), 2)
         self.assertTrue(j3 in Job.objects.all())
         self.assertTrue(j4 in Job.objects.all())
+
+
+@override_settings(JOBS={'testjob': {'tasks': ['a']}})
+class QueueDepthTestCase(TestCase):
+
+    def test_queue_depth(self):
+
+        Job.objects.create(name='testjob', state=Job.STATES.FAILED)
+        Job.objects.create(name='testjob', state=Job.STATES.NEW)
+        Job.objects.create(name='testjob', state=Job.STATES.FAILED)
+        Job.objects.create(name='testjob', state=Job.STATES.COMPLETE)
+        Job.objects.create(name='testjob', state=Job.STATES.READY)
+
+        stdout = StringIO()
+        call_command('queue_depth', stdout=stdout)
+        output = stdout.getvalue()
+        self.assertEqual(output.strip(), 'Queue depth for queue "default" is 2')
