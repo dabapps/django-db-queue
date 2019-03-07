@@ -54,7 +54,7 @@ JOBS = {
 
 #### Failure Hooks
 When an unhandled exception is raised by a job, a failure hook will be called if one exists enabling
-you to clean up any state left behind by your failed job.
+you to clean up any state left behind by your failed job. Failure hook are run in your worker process (if your job fails).
 
 A failure hook receives the failed `Job` instance along with the unhandled exception raised by your failed job as its arguments. Here's an example:
 
@@ -75,7 +75,8 @@ JOBS = {
 ```
 
 #### Creation Hooks
-You can also run creation hooks, which are run just before a job begins.
+You can also run creation hooks, which happen just after the creation of your `Job` instances and are executed in the process
+in which the job was created, _not the worker process_.
 
 A creation hook receives your `Job` instance as its only argument. Here's an example:
 
