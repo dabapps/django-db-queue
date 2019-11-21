@@ -181,9 +181,10 @@ The `workspace` flag is optional. If supplied, it must be a valid JSON string.
 
 To start a worker:
 
-    manage.py worker [queue_name]
+    manage.py worker [queue_name] [--rate_limit]
 
-`queue_name` is optional, and will default to `default`
+- `queue_name` is optional, and will default to `default`
+- The `--rate_limit` flag is optional, and will default to `1`. It is the minimum number of seconds that must have elapsed before a subsequent job can be run.
 
 ## Testing
 
