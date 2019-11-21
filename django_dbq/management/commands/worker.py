@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 from django.utils.module_loading import import_string
 from django_dbq.models import Job
 from simplesignals.process import WorkerProcessBase
@@ -58,13 +59,19 @@ class Worker(WorkerProcessBase):
 
     process_title = "jobworker"
 
-    def __init__(self, name):
+    def __init__(self, name, rate_limit_in_seconds):
         self.queue_name = name
+        self.rate_limit_in_seconds = rate_limit_in_seconds
+        self.last_job_finished = None
         super(Worker, self).__init__()
 
     def do_work(self):
         sleep(1)
+        if self.last_job_finished and (timezone.now() - self.last_job_finished).total_seconds() < self.rate_limit_in_seconds:
+            return
+
         process_job(self.queue_name)
+        self.last_job_finished = timezone.now()
 
 
 class Command(BaseCommand):
@@ -73,6 +80,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('queue_name', nargs='?', default='default', type=str)
+        parser.add_argument('rate_limit', help='The rate limit in seconds. The default rate limit is 1 job per second.', nargs='?', default=1, type=int)
         parser.add_argument(
             '--dry-run',
             action='store_true',
@@ -89,10 +97,11 @@ class Command(BaseCommand):
             raise CommandError("Please supply a single queue job name")
 
         queue_name = options['queue_name']
+        rate_limit_in_seconds = options['rate_limit']
 
-        self.stdout.write("Starting job worker for queue \"%s\"" % queue_name)
+        self.stdout.write("Starting job worker for queue \"%s\" with rate limit %s/s" % (queue_name, rate_limit_in_seconds))
 
-        worker = Worker(queue_name)
+        worker = Worker(queue_name, rate_limit_in_seconds)
 
         if options['dry_run']:
             return
