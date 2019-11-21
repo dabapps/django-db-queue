@@ -20,7 +20,6 @@ DELETE_JOBS_AFTER_HOURS = 24
 
 
 class JobManager(models.Manager):
-
     def get_ready_or_none(self, queue_name, max_retries=3):
         """
         Get a job in state READY or NEW for a given queue. Supports retrying in case of database deadlock
@@ -40,7 +39,7 @@ class JobManager(models.Manager):
         retries_left = max_retries
         while True:
             try:
-                return self.select_for_update().filter(queue_name=queue_name, state__in=(Job.State.READY, Job.State.NEW)).first()
+                return self.to_process(queue_name).first()
             except Exception as e:
                 if retries_left == 0:
                     raise
@@ -55,6 +54,9 @@ class JobManager(models.Manager):
         delete_jobs_created_before = datetime.datetime.utcnow() - datetime.timedelta(hours=DELETE_JOBS_AFTER_HOURS)
         logger.info("Deleting all job in states %s created before %s", ", ".join(delete_jobs_in_states), delete_jobs_created_before.isoformat())
         Job.objects.filter(state__in=delete_jobs_in_states, created__lte=delete_jobs_created_before).delete()
+
+    def to_process(self, queue_name):
+        return self.select_for_update().filter(queue_name=queue_name, state__in=(Job.State.READY, Job.State.NEW))
 
 
 class Job(models.Model):
@@ -82,9 +84,10 @@ class Job(models.Model):
     next_task = models.CharField(max_length=100, blank=True)
     workspace = JSONField(null=True)
     queue_name = models.CharField(max_length=20, default='default', db_index=True)
+    priority = models.SmallIntegerField(default=0, db_index=True)
 
     class Meta:
-        ordering = ['created']
+        ordering = ['-priority', 'created']
 
     objects = JobManager()
 

@@ -138,6 +138,45 @@ class JobTestCase(TestCase):
 
         self.assertEqual(Job.objects.get_ready_or_none('default'), expected)
 
+    def test_gets_jobs_in_priority_order(self):
+        job_1 = Job.objects.create(name='testjob')
+        job_2 = Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
+        job_3 = Job.objects.create(name='testjob', priority=3)
+        job_4 = Job.objects.create(name='testjob', priority=2)
+        self.assertEqual({
+            job for job in Job.objects.to_process('default')
+        }, {
+            job_3, job_4, job_1
+        })
+        self.assertEqual(Job.objects.get_ready_or_none('default'), job_3)
+        self.assertFalse(Job.objects.to_process('default').filter(id=job_2.id).exists())
+
+    def test_gets_jobs_in_negative_priority_order(self):
+        job_1 = Job.objects.create(name='testjob')
+        job_2 = Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
+        job_3 = Job.objects.create(name='testjob', priority=-2)
+        job_4 = Job.objects.create(name='testjob', priority=1)
+        self.assertEqual({
+            job for job in Job.objects.to_process('default')
+        }, {
+            job_4, job_3, job_1
+        })
+        self.assertEqual(Job.objects.get_ready_or_none('default'), job_4)
+        self.assertFalse(Job.objects.to_process('default').filter(id=job_2.id).exists())
+
+    def test_gets_jobs_in_priority_and_date_order(self):
+        job_1 = Job.objects.create(name='testjob', priority=3)
+        job_2 = Job.objects.create(name='testjob', state=Job.STATES.PROCESSING, priority=3)
+        job_3 = Job.objects.create(name='testjob', priority=3)
+        job_4 = Job.objects.create(name='testjob', priority=3)
+        self.assertEqual({
+            job for job in Job.objects.to_process('default')
+        }, {
+            job_1, job_3, job_4
+        })
+        self.assertEqual(Job.objects.get_ready_or_none('default'), job_1)
+        self.assertFalse(Job.objects.to_process('default').filter(id=job_2.id).exists())
+
     def test_get_next_ready_job_created(self):
         """
         Created jobs should be picked too.
