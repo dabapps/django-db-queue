@@ -1,5 +1,7 @@
 language: python
 sudo: false
+services:
+  - mysql
 python:
 - '2.7'
 - '3.4'
