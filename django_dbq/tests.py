@@ -1,8 +1,13 @@
 from datetime import datetime, timedelta
+import mock
+
+import freezegun
 from django.core.management import call_command, CommandError
 from django.test import TestCase
 from django.test.utils import override_settings
-from django_dbq.management.commands.worker import process_job
+from django.utils import timezone
+
+from django_dbq.management.commands.worker import process_job, Worker
 from django_dbq.models import Job
 try:
     from StringIO import StringIO
@@ -75,6 +80,39 @@ class WorkerManagementCommandTestCase(TestCase):
         call_command('worker', queue_name='test_queue', dry_run=True, stdout=stdout)
         output = stdout.getvalue()
         self.assertTrue('test_queue' in output)
+
+
+@freezegun.freeze_time()
+@mock.patch('django_dbq.management.commands.worker.sleep')
+@mock.patch('django_dbq.management.commands.worker.process_job')
+class WorkerProcessDoWorkTestCase(TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.MockWorker = mock.MagicMock()
+        self.MockWorker.queue_name = 'default'
+        self.MockWorker.rate_limit_in_seconds = 5
+        self.MockWorker.last_job_finished = None
+
+    def test_do_work_no_previous_job_run(self, mock_process_job, mock_sleep):
+        Worker.do_work(self.MockWorker)
+        self.assertEqual(mock_sleep.call_count, 1)
+        self.assertEqual(mock_process_job.call_count, 1)
+        self.assertEqual(self.MockWorker.last_job_finished, timezone.now())
+
+    def test_do_work_previous_job_too_soon(self, mock_process_job, mock_sleep):
+        self.MockWorker.last_job_finished = timezone.now() - timezone.timedelta(seconds=2)
+        Worker.do_work(self.MockWorker)
+        self.assertEqual(mock_sleep.call_count, 1)
+        self.assertEqual(mock_process_job.call_count, 0)
+        self.assertEqual(self.MockWorker.last_job_finished, timezone.now() - timezone.timedelta(seconds=2))
+
+    def test_do_work_previous_job_long_time_ago(self, mock_process_job, mock_sleep):
+        self.MockWorker.last_job_finished = timezone.now() - timezone.timedelta(seconds=7)
+        Worker.do_work(self.MockWorker)
+        self.assertEqual(mock_sleep.call_count, 1)
+        self.assertEqual(mock_process_job.call_count, 1)
+        self.assertEqual(self.MockWorker.last_job_finished, timezone.now())
 
 
 @override_settings(JOBS={'testjob': {'tasks': ['a']}})
