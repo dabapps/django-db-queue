@@ -2,15 +2,10 @@ from django.db import models
 from django.utils.module_loading import import_string
 from django_dbq.tasks import get_next_task_name, get_failure_hook_name, get_creation_hook_name
 from jsonfield import JSONField
-from model_utils import Choices
+from django.db.models import UUIDField
 import datetime
 import logging
 import uuid
-
-try:
-    from django.db.models import UUIDField
-except ImportError:
-    from django_dbq.fields import UUIDField
 
 
 logger = logging.getLogger(__name__)
