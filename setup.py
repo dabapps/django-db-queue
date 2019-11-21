@@ -16,9 +16,7 @@ author = 'DabApps'
 author_email = 'contact@dabapps.com'
 license = 'BSD'
 install_requires = [
-    "django-model-utils==2.3.1",
-    "django-uuidfield==0.5.0",
-    "jsonfield==1.0.3",
+    "jsonfield==2.0.2",
     "Django>=1.7",
     "simplesignals==0.3.0",
 ]

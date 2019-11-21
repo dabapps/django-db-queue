@@ -23,7 +23,7 @@ def process_job(queue_name):
             return
 
         logger.info('Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s', job.name, queue_name, job.pk, job.state, job.next_task)
-        job.state = Job.STATES.PROCESSING
+        job.state = Job.State.PROCESSING
         job.save()
 
     try:
@@ -31,12 +31,12 @@ def process_job(queue_name):
         task_function(job)
         job.update_next_task()
         if not job.next_task:
-            job.state = Job.STATES.COMPLETE
+            job.state = Job.State.COMPLETE
         else:
-            job.state = Job.STATES.READY
+            job.state = Job.State.READY
     except Exception as exception:
         logger.exception("Job id=%s failed", job.pk)
-        job.state = Job.STATES.FAILED
+        job.state = Job.State.FAILED
 
         failure_hook_name = job.get_failure_hook_name()
         if failure_hook_name:

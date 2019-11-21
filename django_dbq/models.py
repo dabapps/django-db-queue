@@ -40,7 +40,7 @@ class JobManager(models.Manager):
         retries_left = max_retries
         while True:
             try:
-                return self.select_for_update().filter(queue_name=queue_name, state__in=(Job.STATES.READY, Job.STATES.NEW)).first()
+                return self.select_for_update().filter(queue_name=queue_name, state__in=(Job.State.READY, Job.State.NEW)).first()
             except Exception as e:
                 if retries_left == 0:
                     raise
@@ -51,7 +51,7 @@ class JobManager(models.Manager):
         """
         Delete all jobs older than DELETE_JOBS_AFTER_HOURS
         """
-        delete_jobs_in_states = [Job.STATES.FAILED, Job.STATES.COMPLETE]
+        delete_jobs_in_states = [Job.State.FAILED, Job.State.COMPLETE]
         delete_jobs_created_before = datetime.datetime.utcnow() - datetime.timedelta(hours=DELETE_JOBS_AFTER_HOURS)
         logger.info("Deleting all job in states %s created before %s", ", ".join(delete_jobs_in_states), delete_jobs_created_before.isoformat())
         Job.objects.filter(state__in=delete_jobs_in_states, created__lte=delete_jobs_created_before).delete()
@@ -59,13 +59,26 @@ class JobManager(models.Manager):
 
 class Job(models.Model):
 
-    STATES = Choices("NEW", "READY", "PROCESSING", "FAILED", "COMPLETE")
+    class State:
+        NEW = 'NEW'
+        READY = 'READY'
+        PROCESSING = 'PROCESSING'
+        FAILED = 'FAILED'
+        COMPLETE = 'COMPLETE'
+
+    STATES = [
+        (State.NEW, "NEW"),
+        (State.READY, "READY"),
+        (State.PROCESSING, "PROCESSING"),
+        (State.FAILED, "FAILED"),
+        (State.COMPLETE, "COMPLETE"),
+    ]
 
     id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
-    state = models.CharField(max_length=20, choices=STATES, default=STATES.NEW, db_index=True)
+    state = models.CharField(max_length=20, choices=STATES, default=State.NEW, db_index=True)
     next_task = models.CharField(max_length=100, blank=True)
     workspace = JSONField(null=True)
     queue_name = models.CharField(max_length=20, default='default', db_index=True)
