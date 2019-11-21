@@ -120,19 +120,19 @@ class JobTestCase(TestCase):
 
     def test_create_job(self):
         job = Job(name='testjob')
-        self.assertEqual(job.state, Job.State.NEW)
+        self.assertEqual(job.state, Job.STATES.NEW)
 
     def test_create_job_with_queue(self):
         job = Job(name='testjob', queue_name='lol')
-        self.assertEqual(job.state, Job.State.NEW)
+        self.assertEqual(job.state, Job.STATES.NEW)
         self.assertEqual(job.queue_name, 'lol')
 
     def test_get_next_ready_job(self):
         self.assertTrue(Job.objects.get_ready_or_none('default') is None)
 
-        Job.objects.create(name='testjob', state=Job.State.READY)
-        Job.objects.create(name='testjob', state=Job.State.PROCESSING)
-        expected = Job.objects.create(name='testjob', state=Job.State.READY)
+        Job.objects.create(name='testjob', state=Job.STATES.READY)
+        Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
+        expected = Job.objects.create(name='testjob', state=Job.STATES.READY)
         expected.created = datetime.now() - timedelta(minutes=1)
         expected.save()
 
@@ -140,7 +140,7 @@ class JobTestCase(TestCase):
 
     def test_gets_jobs_in_priority_order(self):
         job_1 = Job.objects.create(name='testjob')
-        job_2 = Job.objects.create(name='testjob', state=Job.State.PROCESSING)
+        job_2 = Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
         job_3 = Job.objects.create(name='testjob', priority=3)
         job_4 = Job.objects.create(name='testjob', priority=2)
         self.assertEqual({
@@ -153,7 +153,7 @@ class JobTestCase(TestCase):
 
     def test_gets_jobs_in_negative_priority_order(self):
         job_1 = Job.objects.create(name='testjob')
-        job_2 = Job.objects.create(name='testjob', state=Job.State.PROCESSING)
+        job_2 = Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
         job_3 = Job.objects.create(name='testjob', priority=-2)
         job_4 = Job.objects.create(name='testjob', priority=1)
         self.assertEqual({
@@ -166,7 +166,7 @@ class JobTestCase(TestCase):
 
     def test_gets_jobs_in_priority_and_date_order(self):
         job_1 = Job.objects.create(name='testjob', priority=3)
-        job_2 = Job.objects.create(name='testjob', state=Job.State.PROCESSING, priority=3)
+        job_2 = Job.objects.create(name='testjob', state=Job.STATES.PROCESSING, priority=3)
         job_3 = Job.objects.create(name='testjob', priority=3)
         job_4 = Job.objects.create(name='testjob', priority=3)
         self.assertEqual({
@@ -187,9 +187,9 @@ class JobTestCase(TestCase):
         """
         self.assertTrue(Job.objects.get_ready_or_none('default') is None)
 
-        Job.objects.create(name='testjob', state=Job.State.NEW)
-        Job.objects.create(name='testjob', state=Job.State.PROCESSING)
-        expected = Job.objects.create(name='testjob', state=Job.State.NEW)
+        Job.objects.create(name='testjob', state=Job.STATES.NEW)
+        Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
+        expected = Job.objects.create(name='testjob', state=Job.STATES.NEW)
         expected.created = datetime.now() - timedelta(minutes=1)
         expected.save()
 
@@ -217,7 +217,7 @@ class ProcessJobTestCase(TestCase):
         job = Job.objects.create(name='testjob')
         process_job('default')
         job = Job.objects.get()
-        self.assertEqual(job.state, Job.State.COMPLETE)
+        self.assertEqual(job.state, Job.STATES.COMPLETE)
 
     def test_process_job_wrong_queue(self):
         """
@@ -226,7 +226,7 @@ class ProcessJobTestCase(TestCase):
         job = Job.objects.create(name='testjob', queue_name='lol')
         process_job('default')
         job = Job.objects.get()
-        self.assertEqual(job.state, Job.State.NEW)
+        self.assertEqual(job.state, Job.STATES.NEW)
 
 
 @override_settings(JOBS={'testjob': {'tasks': ['django_dbq.tests.test_task'], 'creation_hook': 'django_dbq.tests.creation_hook'}})
@@ -253,7 +253,7 @@ class JobFailureHookTestCase(TestCase):
         job = Job.objects.create(name='testjob')
         process_job('default')
         job = Job.objects.get()
-        self.assertEqual(job.state, Job.State.FAILED)
+        self.assertEqual(job.state, Job.STATES.FAILED)
         self.assertEqual(job.workspace['output'], 'failure hook ran')
 
 
@@ -263,19 +263,19 @@ class DeleteOldJobsTestCase(TestCase):
     def test_delete_old_jobs(self):
         two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-        j1 = Job.objects.create(name='testjob', state=Job.State.COMPLETE)
+        j1 = Job.objects.create(name='testjob', state=Job.STATES.COMPLETE)
         j1.created = two_days_ago
         j1.save()
 
-        j2 = Job.objects.create(name='testjob', state=Job.State.FAILED)
+        j2 = Job.objects.create(name='testjob', state=Job.STATES.FAILED)
         j2.created = two_days_ago
         j2.save()
 
-        j3 = Job.objects.create(name='testjob', state=Job.State.NEW)
+        j3 = Job.objects.create(name='testjob', state=Job.STATES.NEW)
         j3.created = two_days_ago
         j3.save()
 
-        j4 = Job.objects.create(name='testjob', state=Job.State.COMPLETE)
+        j4 = Job.objects.create(name='testjob', state=Job.STATES.COMPLETE)
 
         Job.objects.delete_old()
 
