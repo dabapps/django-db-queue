@@ -1,7 +1,5 @@
 import os
-import pymysql
 import dj_database_url
-pymysql.install_as_MySQLdb()
 
 DATABASES = {
     'default': dj_database_url.parse(os.environ['DATABASE_URL']),
