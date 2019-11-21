@@ -12,11 +12,11 @@ Tested against Django 1.8, 1.9, 1.10, 1.11
 ## Getting Started
 
 ### Installation
-    
+
 Install from PIP
-    
+
     pip install django-db-queue
-    
+
 Add `django_dbq` to your installed apps
 
     INSTALLED_APPS = (
@@ -45,6 +45,53 @@ In project.settings:
 JOBS = {
     'my_job': {
         'tasks': ['project.common.jobs.my_task']
+    },
+}
+```
+
+### Hooks
+
+
+#### Failure Hooks
+When an unhandled exception is raised by a job, a failure hook will be called if one exists enabling
+you to clean up any state left behind by your failed job. Failure hooks are run in your worker process (if your job fails).
+
+A failure hook receives the failed `Job` instance along with the unhandled exception raised by your failed job as its arguments. Here's an example:
+
+```python
+def my_task_failure_hook(job, e):
+    # delete some temporary files on the filesystem
+```
+
+To ensure this hook gets run, simply add a `failure_hook` key to your job config like so:
+
+```python
+JOBS = {
+    'my_job': {
+        'tasks': ['project.common.jobs.my_task'],
+        'failure_hook': 'project.common.jobs.my_task_failure_hook'
+    },
+}
+```
+
+#### Creation Hooks
+You can also run creation hooks, which happen just after the creation of your `Job` instances and are executed in the process
+in which the job was created, _not the worker process_.
+
+A creation hook receives your `Job` instance as its only argument. Here's an example:
+
+```python
+def my_task_creation_hook(job):
+    # configure something before running your job
+```
+
+To ensure this hook gets run, simply add a `creation_hook` key to your job config like so:
+
+```python
+JOBS = {
+    'my_job': {
+        'tasks': ['project.common.jobs.my_task'],
+        'creation_hook': 'project.common.jobs.my_task_creation_hook'
     },
 }
 ```
@@ -141,3 +188,7 @@ To start a worker:
 ## Testing
 
 It may be necessary to supply a DATABASE_PORT environment variable.
+
+## Code of conduct
+
+For guidelines regarding the code of conduct when contributing to this repository please review [https://www.dabapps.com/open-source/code-of-conduct/](https://www.dabapps.com/open-source/code-of-conduct/)
