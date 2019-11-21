@@ -4,19 +4,11 @@ services:
   - mysql
   - postgresql
 python:
-- '3.5'
-- '3.6'
 - '3.7'
 - '3.8'
 env:
-- DJANGO_VERSION=1.8 DATABASE_URL=postgres://postgres@127.0.0.1/dbq
-- DJANGO_VERSION=1.9 DATABASE_URL=postgres://postgres@127.0.0.1/dbq
-- DJANGO_VERSION=1.10 DATABASE_URL=postgres://postgres@127.0.0.1/dbq
 - DJANGO_VERSION=1.11 DATABASE_URL=postgres://postgres@127.0.0.1/dbq
 - DJANGO_VERSION=2.2 DATABASE_URL=postgres://postgres@127.0.0.1/dbq
-- DJANGO_VERSION=1.8 DATABASE_URL=mysql://root@127.0.0.1/dbq
-- DJANGO_VERSION=1.9 DATABASE_URL=mysql://root@127.0.0.1/dbq
-- DJANGO_VERSION=1.10 DATABASE_URL=mysql://root@127.0.0.1/dbq
 - DJANGO_VERSION=1.11 DATABASE_URL=mysql://root@127.0.0.1/dbq
 - DJANGO_VERSION=2.2 DATABASE_URL=mysql://root@127.0.0.1/dbq
 install:
