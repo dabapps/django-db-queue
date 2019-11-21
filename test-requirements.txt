@@ -1,5 +1,5 @@
 -r requirements.txt
-pymysql==0.7.11
+mysqlclient==1.4.6
 freezegun==0.3.12
 mock==3.0.5
 dj-database-url==0.5.0
