@@ -140,7 +140,7 @@ class JobTestCase(TestCase):
 
     def test_gets_jobs_in_priority_order(self):
         job_1 = Job.objects.create(name='testjob')
-        job_2 = Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
+        job_2 = Job.objects.create(name='testjob', state=Job.State.PROCESSING)
         job_3 = Job.objects.create(name='testjob', priority=3)
         job_4 = Job.objects.create(name='testjob', priority=2)
         self.assertEqual({
@@ -153,7 +153,7 @@ class JobTestCase(TestCase):
 
     def test_gets_jobs_in_negative_priority_order(self):
         job_1 = Job.objects.create(name='testjob')
-        job_2 = Job.objects.create(name='testjob', state=Job.STATES.PROCESSING)
+        job_2 = Job.objects.create(name='testjob', state=Job.State.PROCESSING)
         job_3 = Job.objects.create(name='testjob', priority=-2)
         job_4 = Job.objects.create(name='testjob', priority=1)
         self.assertEqual({
@@ -166,7 +166,7 @@ class JobTestCase(TestCase):
 
     def test_gets_jobs_in_priority_and_date_order(self):
         job_1 = Job.objects.create(name='testjob', priority=3)
-        job_2 = Job.objects.create(name='testjob', state=Job.STATES.PROCESSING, priority=3)
+        job_2 = Job.objects.create(name='testjob', state=Job.State.PROCESSING, priority=3)
         job_3 = Job.objects.create(name='testjob', priority=3)
         job_4 = Job.objects.create(name='testjob', priority=3)
         self.assertEqual({
