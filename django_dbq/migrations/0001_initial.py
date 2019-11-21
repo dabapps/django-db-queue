@@ -5,10 +5,7 @@ from django.db import models, migrations
 import jsonfield.fields
 import uuid
 
-try:
-    from django.db.models import UUIDField
-except ImportError:
-    from django_dbq.fields import UUIDField
+from django.db.models import UUIDField
 
 
 class Migration(migrations.Migration):
