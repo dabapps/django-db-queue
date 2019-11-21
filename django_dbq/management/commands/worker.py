@@ -67,7 +67,7 @@ class Worker(WorkerProcessBase):
 
     def do_work(self):
         sleep(1)
-        if self.last_job_finished and (self.last_job_finished - timezone.now()).seconds < self.rate_limit_in_seconds:
+        if self.last_job_finished and (timezone.now() - self.last_job_finished).seconds < self.rate_limit_in_seconds:
             return
 
         process_job(self.queue_name)

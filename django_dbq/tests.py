@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from unittest import mock
+import mock
 
 import freezegun
 from django.core.management import call_command, CommandError
@@ -83,7 +83,7 @@ class WorkerManagementCommandTestCase(TestCase):
 
 
 @freezegun.freeze_time()
-@mock.patch('django_dbq.management.commands.worker.time.sleep')
+@mock.patch('django_dbq.management.commands.worker.sleep')
 @mock.patch('django_dbq.management.commands.worker.process_job')
 class WorkerProcessDoWorkTestCase(TestCase):
 
