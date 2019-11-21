@@ -8,4 +8,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         Job.objects.delete_old()
-        self.stdout.write('Deleted old jobs')
+        self.stdout.write("Deleted old jobs")

@@ -8,17 +8,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('django_dbq', '0002_auto_20151016_1027'),
+        ("django_dbq", "0002_auto_20151016_1027"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='job',
-            options={'ordering': ['-priority', 'created']},
+            name="job", options={"ordering": ["-priority", "created"]},
         ),
         migrations.AddField(
-            model_name='job',
-            name='priority',
+            model_name="job",
+            name="priority",
             field=models.SmallIntegerField(db_index=True, default=0),
         ),
     ]

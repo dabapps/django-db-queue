@@ -1,9 +1,9 @@
 from django.conf import settings
 
 
-TASK_LIST_KEY = 'tasks'
-FAILURE_HOOK_KEY = 'failure_hook'
-CREATION_HOOK_KEY = 'creation_hook'
+TASK_LIST_KEY = "tasks"
+FAILURE_HOOK_KEY = "failure_hook"
+CREATION_HOOK_KEY = "creation_hook"
 
 
 def get_next_task_name(job_name, current_task=None):
