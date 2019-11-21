@@ -88,7 +88,7 @@ class WorkerManagementCommandTestCase(TestCase):
 class WorkerProcessDoWorkTestCase(TestCase):
 
     def setUp(self):
-        super().setUp()
+        super(WorkerProcessDoWorkTestCase, self).setUp()
         self.MockWorker = mock.MagicMock()
         self.MockWorker.queue_name = 'default'
         self.MockWorker.rate_limit_in_seconds = 5
