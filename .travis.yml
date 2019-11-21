@@ -7,10 +7,14 @@ python:
 - '3.7'
 - '3.8'
 env:
-- DJANGO_VERSION=1.11 DATABASE_URL=postgres://postgres@127.0.0.1/dbq
-- DJANGO_VERSION=2.2 DATABASE_URL=postgres://postgres@127.0.0.1/dbq
-- DJANGO_VERSION=1.11 DATABASE_URL=mysql://root@127.0.0.1/dbq
-- DJANGO_VERSION=2.2 DATABASE_URL=mysql://root@127.0.0.1/dbq
+  global:
+    - DATABASE_URL=postgres://postgres@127.0.0.1/dbq
+    - DATABASE_URL=mysql://root@127.0.0.1/dbq
+  jobs:
+    - DJANGO_VERSION=1.11
+    - DJANGO_VERSION=2.2
+    - DJANGO_VERSION=1.11
+    - DJANGO_VERSION=2.2
 install:
 - pip install -r test-requirements.txt
 - pip install -U django==$DJANGO_VERSION
