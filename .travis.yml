@@ -16,7 +16,9 @@ env:
 install:
 - pip install -r test-requirements.txt
 - pip install -U django==$DJANGO_VERSION
-script: black . --check && python manage.py test
+script:
+  - black --check django_dbq
+  - python manage.py test
 deploy:
   provider: pypi
   user: dabapps
