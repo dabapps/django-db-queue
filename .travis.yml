@@ -16,6 +16,7 @@ env:
 install:
 - pip install -r test-requirements.txt
 - pip install -U django==$DJANGO_VERSION
+- if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then pip install black==19.10b0; fi
 script:
   - if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then black --check django_dbq; fi
   - python manage.py test
