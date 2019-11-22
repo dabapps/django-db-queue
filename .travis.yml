@@ -17,7 +17,7 @@ install:
 - pip install -r test-requirements.txt
 - pip install -U django==$DJANGO_VERSION
 script:
-  - black --check django_dbq
+  - if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then black --check django_dbq; fi
   - python manage.py test
 deploy:
   provider: pypi
