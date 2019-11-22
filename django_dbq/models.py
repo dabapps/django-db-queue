@@ -1,16 +1,15 @@
 from django.db import models
 from django.utils.module_loading import import_string
-from django_dbq.tasks import get_next_task_name, get_failure_hook_name, get_creation_hook_name
+from django_dbq.tasks import (
+    get_next_task_name,
+    get_failure_hook_name,
+    get_creation_hook_name,
+)
 from jsonfield import JSONField
-from model_utils import Choices
+from django.db.models import UUIDField
 import datetime
 import logging
 import uuid
-
-try:
-    from django.db.models import UUIDField
-except ImportError:
-    from django_dbq.fields import UUIDField
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +19,6 @@ DELETE_JOBS_AFTER_HOURS = 24
 
 
 class JobManager(models.Manager):
-
     def get_ready_or_none(self, queue_name, max_retries=3):
         """
         Get a job in state READY or NEW for a given queue. Supports retrying in case of database deadlock
@@ -40,38 +38,70 @@ class JobManager(models.Manager):
         retries_left = max_retries
         while True:
             try:
-                return self.select_for_update().filter(queue_name=queue_name, state__in=(Job.STATES.READY, Job.STATES.NEW)).first()
+                return self.to_process(queue_name).first()
             except Exception as e:
                 if retries_left == 0:
                     raise
                 retries_left -= 1
-                logger.warn("Caught %s when looking for a READY job, retrying %s more times", str(e), retries_left)
+                logger.warn(
+                    "Caught %s when looking for a READY job, retrying %s more times",
+                    str(e),
+                    retries_left,
+                )
 
     def delete_old(self):
         """
         Delete all jobs older than DELETE_JOBS_AFTER_HOURS
         """
         delete_jobs_in_states = [Job.STATES.FAILED, Job.STATES.COMPLETE]
-        delete_jobs_created_before = datetime.datetime.utcnow() - datetime.timedelta(hours=DELETE_JOBS_AFTER_HOURS)
-        logger.info("Deleting all job in states %s created before %s", ", ".join(delete_jobs_in_states), delete_jobs_created_before.isoformat())
-        Job.objects.filter(state__in=delete_jobs_in_states, created__lte=delete_jobs_created_before).delete()
+        delete_jobs_created_before = datetime.datetime.utcnow() - datetime.timedelta(
+            hours=DELETE_JOBS_AFTER_HOURS
+        )
+        logger.info(
+            "Deleting all job in states %s created before %s",
+            ", ".join(delete_jobs_in_states),
+            delete_jobs_created_before.isoformat(),
+        )
+        Job.objects.filter(
+            state__in=delete_jobs_in_states, created__lte=delete_jobs_created_before
+        ).delete()
+
+    def to_process(self, queue_name):
+        return self.select_for_update().filter(
+            queue_name=queue_name, state__in=(Job.STATES.READY, Job.STATES.NEW)
+        )
 
 
 class Job(models.Model):
+    class STATES:
+        NEW = "NEW"
+        READY = "READY"
+        PROCESSING = "PROCESSING"
+        FAILED = "FAILED"
+        COMPLETE = "COMPLETE"
 
-    STATES = Choices("NEW", "READY", "PROCESSING", "FAILED", "COMPLETE")
+    STATE_CHOICES = [
+        (STATES.NEW, "NEW"),
+        (STATES.READY, "READY"),
+        (STATES.PROCESSING, "PROCESSING"),
+        (STATES.FAILED, "FAILED"),
+        (STATES.COMPLETE, "COMPLETE"),
+    ]
 
     id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
-    state = models.CharField(max_length=20, choices=STATES, default=STATES.NEW, db_index=True)
+    state = models.CharField(
+        max_length=20, choices=STATE_CHOICES, default=STATES.NEW, db_index=True
+    )
     next_task = models.CharField(max_length=100, blank=True)
     workspace = JSONField(null=True)
-    queue_name = models.CharField(max_length=20, default='default', db_index=True)
+    queue_name = models.CharField(max_length=20, default="default", db_index=True)
+    priority = models.SmallIntegerField(default=0, db_index=True)
 
     class Meta:
-        ordering = ['created']
+        ordering = ["-priority", "created"]
 
     objects = JobManager()
 
@@ -85,13 +115,15 @@ class Job(models.Model):
             try:
                 self.run_creation_hook()
             except Exception as exception:  # noqa
-                logger.exception("Failed to create new job, creation hook raised an exception")
+                logger.exception(
+                    "Failed to create new job, creation hook raised an exception"
+                )
                 return  # cancel the save
 
         return super(Job, self).save(*args, **kwargs)
 
     def update_next_task(self):
-        self.next_task = get_next_task_name(self.name, self.next_task) or ''
+        self.next_task = get_next_task_name(self.name, self.next_task) or ""
 
     def get_failure_hook_name(self):
         return get_failure_hook_name(self.name)
