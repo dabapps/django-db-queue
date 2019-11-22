@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_QUEUE_NAME = 'default'
+DEFAULT_QUEUE_NAME = "default"
 
 
 def process_job(queue_name):
@@ -22,7 +22,14 @@ def process_job(queue_name):
         if not job:
             return
 
-        logger.info('Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s', job.name, queue_name, job.pk, job.state, job.next_task)
+        logger.info(
+            'Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s',
+            job.name,
+            queue_name,
+            job.pk,
+            job.state,
+            job.next_task,
+        )
         job.state = Job.STATES.PROCESSING
         job.save()
 
@@ -40,18 +47,30 @@ def process_job(queue_name):
 
         failure_hook_name = job.get_failure_hook_name()
         if failure_hook_name:
-            logger.info("Running failure hook %s for job id=%s", failure_hook_name, job.pk)
+            logger.info(
+                "Running failure hook %s for job id=%s", failure_hook_name, job.pk
+            )
             failure_hook_function = import_string(failure_hook_name)
             failure_hook_function(job, exception)
         else:
             logger.info("No failure hook for job id=%s", job.pk)
 
-    logger.info('Updating job: name="%s" id=%s state=%s next_task=%s', job.name, job.pk, job.state, job.next_task or 'none')
+    logger.info(
+        'Updating job: name="%s" id=%s state=%s next_task=%s',
+        job.name,
+        job.pk,
+        job.state,
+        job.next_task or "none",
+    )
 
     try:
         job.save()
     except:
-        logger.error('Failed to save job: id=%s org=%s', job.pk, job.workspace.get('organisation_id'))
+        logger.error(
+            "Failed to save job: id=%s org=%s",
+            job.pk,
+            job.workspace.get("organisation_id"),
+        )
         raise
 
 
@@ -67,7 +86,11 @@ class Worker(WorkerProcessBase):
 
     def do_work(self):
         sleep(1)
-        if self.last_job_finished and (timezone.now() - self.last_job_finished).total_seconds() < self.rate_limit_in_seconds:
+        if (
+            self.last_job_finished
+            and (timezone.now() - self.last_job_finished).total_seconds()
+            < self.rate_limit_in_seconds
+        ):
             return
 
         process_job(self.queue_name)
@@ -79,14 +102,20 @@ class Command(BaseCommand):
     help = "Run a queue worker process"
 
     def add_arguments(self, parser):
-        parser.add_argument('queue_name', nargs='?', default='default', type=str)
-        parser.add_argument('rate_limit', help='The rate limit in seconds. The default rate limit is 1 job per second.', nargs='?', default=1, type=int)
+        parser.add_argument("queue_name", nargs="?", default="default", type=str)
         parser.add_argument(
-            '--dry-run',
-            action='store_true',
-            dest='dry_run',
+            "rate_limit",
+            help="The rate limit in seconds. The default rate limit is 1 job per second.",
+            nargs="?",
+            default=1,
+            type=int,
+        )
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            dest="dry_run",
             default=False,
-            help="Don't actually start the worker. Used for testing."
+            help="Don't actually start the worker. Used for testing.",
         )
 
     def handle(self, *args, **options):
@@ -96,14 +125,17 @@ class Command(BaseCommand):
         if len(args) != 1:
             raise CommandError("Please supply a single queue job name")
 
-        queue_name = options['queue_name']
-        rate_limit_in_seconds = options['rate_limit']
+        queue_name = options["queue_name"]
+        rate_limit_in_seconds = options["rate_limit"]
 
-        self.stdout.write("Starting job worker for queue \"%s\" with rate limit %s/s" % (queue_name, rate_limit_in_seconds))
+        self.stdout.write(
+            'Starting job worker for queue "%s" with rate limit %s/s'
+            % (queue_name, rate_limit_in_seconds)
+        )
 
         worker = Worker(queue_name, rate_limit_in_seconds)
 
-        if options['dry_run']:
+        if options["dry_run"]:
             return
 
         worker.run()
