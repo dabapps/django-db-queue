@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import transaction, close_old_connections
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.utils.module_loading import import_string
@@ -16,6 +16,7 @@ DEFAULT_QUEUE_NAME = "default"
 
 def process_job(queue_name):
     """This function grabs the next available job for a given queue, and runs its next task."""
+    close_old_connections()
 
     with transaction.atomic():
         job = Job.objects.get_ready_or_none(queue_name)
