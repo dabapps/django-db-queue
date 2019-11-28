@@ -143,7 +143,7 @@ class Job(models.Model):
         annotation_dicts = (
             Job.objects.filter(state__in=(Job.STATES.READY, Job.STATES.NEW))
             .values("queue_name")
-            .order_by('queue_name')
+            .order_by("queue_name")
             .annotate(Count("queue_name"))
         )
 
