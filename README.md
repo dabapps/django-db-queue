@@ -168,13 +168,34 @@ Jobs have a `state` field which can have one of the following values:
 
 ### API
 
+#### Model methods
+
+##### Job.get_queue_depths_dict
+If you need to programatically get the depth of any queue you can run the following:
+```python
+from django_dbq.models import Job
+
+...
+
+Job.objects.create(name='do_work', workspace={})
+Job.objects.create(name='do_other_work', queue_name='other_queue', workspace={})
+
+queue_depths = Job.get_queue_depths_dict()
+print(queue_depths)  # {"default": 1, "other_queue": 1}
+```
+
+**Important:** When checking queue depths, do not assume that the key for your queue will always be available. Queue depths of zero won't be included
+in the dict returned by this method.
+
 #### Management commands
 
+##### manage.py delete_old_jobs
 There is a management command, `manage.py delete_old_jobs`, which deletes any
 jobs from the database which are in state `COMPLETE` or `FAILED` and were
 created more than 24 hours ago. This could be run, for example, as a cron task,
 to ensure the jobs table remains at a reasonable size.
 
+##### manage.py create_job
 For debugging/development purposes, a simple management command is supplied to create jobs:
 
     manage.py create_job <job_name> --queue_name 'my_queue_name' --workspace '{"key": "value"}'
@@ -183,12 +204,19 @@ The `workspace` flag is optional. If supplied, it must be a valid JSON string.
 
 `queue_name` is optional and defaults to `default`
 
+##### manage.py worker
 To start a worker:
 
     manage.py worker [queue_name] [--rate_limit]
 
 - `queue_name` is optional, and will default to `default`
 - The `--rate_limit` flag is optional, and will default to `1`. It is the minimum number of seconds that must have elapsed before a subsequent job can be run.
+
+##### manage.py queue_depth
+If you'd like to check your queue depth from the command line, you can run `manage.py queue_depth [queue_name]` and any
+jobs in the "NEW" or "READY" states will be returned.
+
+**Important:** If you misspell or provide a queue name which does not have any jobs, a depth of 0 will always be returned.
 
 ## Testing
 
