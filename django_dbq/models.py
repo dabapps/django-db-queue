@@ -140,11 +140,14 @@ class Job(models.Model):
 
     @staticmethod
     def get_queue_depths_dict():
-        annotation_dicts = Job.objects.filter(state__in=(Job.STATES.READY, Job.STATES.NEW)).values('queue_name').order_by().annotate(
-            Count('queue_name'))
+        annotation_dicts = (
+            Job.objects.filter(state__in=(Job.STATES.READY, Job.STATES.NEW))
+            .values("queue_name")
+            .order_by()
+            .annotate(Count("queue_name"))
+        )
 
         return {
-            annotation_dict['queue_name']: annotation_dict['queue_name__count']
-            for annotation_dict
-            in annotation_dicts
+            annotation_dict["queue_name"]: annotation_dict["queue_name__count"]
+            for annotation_dict in annotation_dicts
         }

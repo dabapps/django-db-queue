@@ -83,19 +83,19 @@ class WorkerManagementCommandTestCase(TestCase):
 
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
 class JobModelMethodTestCase(TestCase):
-
     def test_get_queue_depths_dict(self):
-        Job.objects.create(name='testjob', queue_name='default')
-        Job.objects.create(name='testjob', queue_name='testworker')
-        Job.objects.create(name='testjob', queue_name='testworker')
-        Job.objects.create(name='testjob', queue_name='testworker', state=Job.STATES.FAILED)
-        Job.objects.create(name='testjob', queue_name='testworker', state=Job.STATES.COMPLETE)
+        Job.objects.create(name="testjob", queue_name="default")
+        Job.objects.create(name="testjob", queue_name="testworker")
+        Job.objects.create(name="testjob", queue_name="testworker")
+        Job.objects.create(
+            name="testjob", queue_name="testworker", state=Job.STATES.FAILED
+        )
+        Job.objects.create(
+            name="testjob", queue_name="testworker", state=Job.STATES.COMPLETE
+        )
 
         queue_depths = Job.get_queue_depths_dict()
-        self.assertDictEqual(queue_depths, {
-            'default': 1,
-            'testworker': 2
-        })
+        self.assertDictEqual(queue_depths, {"default": 1, "testworker": 2})
 
 
 @freezegun.freeze_time()
