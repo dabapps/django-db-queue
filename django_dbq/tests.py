@@ -98,27 +98,26 @@ class JobModelMethodTestCase(TestCase):
         self.assertDictEqual(queue_depths, {"default": 1, "testworker": 2})
 
 
-@override_settings(JOBS={'testjob': {'tasks': ['a']}})
+@override_settings(JOBS={"testjob": {"tasks": ["a"]}})
 class QueueDepthTestCase(TestCase):
-
     def test_queue_depth(self):
 
-        Job.objects.create(name='testjob', state=Job.STATES.FAILED)
-        Job.objects.create(name='testjob', state=Job.STATES.NEW)
-        Job.objects.create(name='testjob', state=Job.STATES.FAILED)
-        Job.objects.create(name='testjob', state=Job.STATES.COMPLETE)
-        Job.objects.create(name='testjob', state=Job.STATES.READY)
+        Job.objects.create(name="testjob", state=Job.STATES.FAILED)
+        Job.objects.create(name="testjob", state=Job.STATES.NEW)
+        Job.objects.create(name="testjob", state=Job.STATES.FAILED)
+        Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
+        Job.objects.create(name="testjob", state=Job.STATES.READY)
 
         stdout = StringIO()
-        call_command('queue_depth', stdout=stdout)
+        call_command("queue_depth", stdout=stdout)
         output = stdout.getvalue()
-        self.assertEqual(output.strip(), 'queue_name=default queue_depth=2')
+        self.assertEqual(output.strip(), "queue_name=default queue_depth=2")
 
     def test_queue_depth_for_queue_with_zero_jobs(self):
         stdout = StringIO()
-        call_command('queue_depth', queue_name='otherqueue', stdout=stdout)
+        call_command("queue_depth", queue_name="otherqueue", stdout=stdout)
         output = stdout.getvalue()
-        self.assertEqual(output.strip(), 'queue_name=otherqueue queue_depth=0')
+        self.assertEqual(output.strip(), "queue_name=otherqueue queue_depth=0")
 
 
 @freezegun.freeze_time()
