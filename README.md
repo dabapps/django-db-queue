@@ -114,6 +114,20 @@ Using the name you configured for your job in your settings, create an instance 
 Job.objects.create(name='my_job')
 ```
 
+### Prioritising jobs
+Sometimes it is necessary for certain jobs to take precedence over others. For example; you may have a worker which has a primary purpose of dispatching somewhat
+important emails to users. However, once an hour, you may need to run a _really_ important job which needs to be done on time and cannot wait in the queue for dozens
+of emails to be dispatched before it can begin.
+
+In order to make sure that an important job is run before others, you can set the `priority` field to an integer higher than `0` (the default). For example:
+```python
+Job.objects.create(name='normal_job')
+Job.objects.create(name='important_job', priority=1)
+Job.objects.create(name='critical_job', priority=2)
+```
+
+Jobs will be ordered by their `priority` (highest to lowest) and then the time which they were created (oldest to newest) and processed in that order.
+
 ## Terminology
 
 ### Job
