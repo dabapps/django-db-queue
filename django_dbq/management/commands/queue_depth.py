@@ -12,7 +12,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         queue_name = options["queue_name"]
         queue_depths = Job.get_queue_depths()
-        all_queues_depth = sum([queue_depth for _, queue_depth in queue_depths.items()])
+        all_queues_depth = sum(queue_depths.values())
 
         self.stdout.write(
             "all_queues_depth= queue_name={queue_name} queue_depth={depth}".format(
