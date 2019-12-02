@@ -117,17 +117,13 @@ class QueueDepthTestCase(TestCase):
         stdout = StringIO()
         call_command("queue_depth", stdout=stdout)
         output = stdout.getvalue()
-        self.assertEqual(
-            output.strip(), "queue_name=default queue_depth=2 all_queues_depth=4"
-        )
+        self.assertEqual(output.strip(), "queue_name=default queue_depth=2")
 
     def test_queue_depth_for_queue_with_zero_jobs(self):
         stdout = StringIO()
         call_command("queue_depth", queue_name="otherqueue", stdout=stdout)
         output = stdout.getvalue()
-        self.assertEqual(
-            output.strip(), "queue_name=otherqueue queue_depth=0 all_queues_depth=0"
-        )
+        self.assertEqual(output.strip(), "queue_name=otherqueue queue_depth=0")
 
 
 @freezegun.freeze_time()
