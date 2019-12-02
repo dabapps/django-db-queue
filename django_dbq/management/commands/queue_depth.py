@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         queue_name = options["queue_name"]
-        queue_depths = Job.get_queue_depths_dict()
+        queue_depths = Job.get_queue_depths()
 
         self.stdout.write(
             "queue_name={queue_name} queue_depth={depth}".format(

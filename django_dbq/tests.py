@@ -83,7 +83,7 @@ class WorkerManagementCommandTestCase(TestCase):
 
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
 class JobModelMethodTestCase(TestCase):
-    def test_get_queue_depths_dict(self):
+    def test_get_queue_depths(self):
         Job.objects.create(name="testjob", queue_name="default")
         Job.objects.create(name="testjob", queue_name="testworker")
         Job.objects.create(name="testjob", queue_name="testworker")
@@ -94,7 +94,7 @@ class JobModelMethodTestCase(TestCase):
             name="testjob", queue_name="testworker", state=Job.STATES.COMPLETE
         )
 
-        queue_depths = Job.get_queue_depths_dict()
+        queue_depths = Job.get_queue_depths()
         self.assertDictEqual(queue_depths, {"default": 1, "testworker": 2})
 
 

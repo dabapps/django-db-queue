@@ -139,7 +139,7 @@ class Job(models.Model):
             creation_hook_function(self)
 
     @staticmethod
-    def get_queue_depths_dict():
+    def get_queue_depths():
         annotation_dicts = (
             Job.objects.filter(state__in=(Job.STATES.READY, Job.STATES.NEW))
             .values("queue_name")
