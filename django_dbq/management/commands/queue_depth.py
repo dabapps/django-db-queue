@@ -16,7 +16,10 @@ class Command(BaseCommand):
         self.stdout.write(
             " ".join(
                 [
-                    f"{queue_name}={queue_depths.get(queue_name, 0)}"
+                    "{queue_name}={queue_depth}".format(
+                        queue_name=queue_name,
+                        queue_depth=queue_depths.get(queue_name, 0)
+                    )
                     for queue_name in queue_names
                 ]
             )
