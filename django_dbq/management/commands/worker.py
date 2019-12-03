@@ -104,7 +104,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("queue_name", nargs="?", default="default", type=str)
         parser.add_argument(
-            "rate_limit",
+            "--rate_limit",
             help="The rate limit in seconds. The default rate limit is 1 job per second.",
             nargs="?",
             default=1,
