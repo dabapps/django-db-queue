@@ -13,14 +13,15 @@ class Command(BaseCommand):
         queue_names = options["queue_name"]
         queue_depths = Job.get_queue_depths()
 
+        queue_depths_string = " ".join(
+            [
+                "{queue_name}={queue_depth}".format(
+                    queue_name=queue_name, queue_depth=queue_depths.get(queue_name, 0),
+                )
+                for queue_name in queue_names
+            ]
+        )
+
         self.stdout.write(
-            " ".join(
-                [
-                    "{queue_name}={queue_depth}".format(
-                        queue_name=queue_name,
-                        queue_depth=queue_depths.get(queue_name, 0),
-                    )
-                    for queue_name in queue_names
-                ]
-            )
+            "event=queue_depths {queue_depths}".format(queue_depths=queue_depths_string)
         )

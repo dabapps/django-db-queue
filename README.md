@@ -213,7 +213,7 @@ To start a worker:
 - The `--rate_limit` flag is optional, and will default to `1`. It is the minimum number of seconds that must have elapsed before a subsequent job can be run.
 
 ##### manage.py queue_depth
-If you'd like to check your queue depth from the command line, you can run `manage.py queue_depth [queue_name]` and any
+If you'd like to check your queue depth from the command line, you can run `manage.py queue_depth [queue_name [queue_name ...]]` and any
 jobs in the "NEW" or "READY" states will be returned.
 
 **Important:** If you misspell or provide a queue name which does not have any jobs, a depth of 0 will always be returned.
