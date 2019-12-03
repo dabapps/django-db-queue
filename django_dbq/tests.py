@@ -81,6 +81,70 @@ class WorkerManagementCommandTestCase(TestCase):
         self.assertTrue("test_queue" in output)
 
 
+@override_settings(JOBS={"testjob": {"tasks": ["a"]}})
+class JobModelMethodTestCase(TestCase):
+    def test_get_queue_depths(self):
+        Job.objects.create(name="testjob", queue_name="default")
+        Job.objects.create(name="testjob", queue_name="testworker")
+        Job.objects.create(name="testjob", queue_name="testworker")
+        Job.objects.create(
+            name="testjob", queue_name="testworker", state=Job.STATES.FAILED
+        )
+        Job.objects.create(
+            name="testjob", queue_name="testworker", state=Job.STATES.COMPLETE
+        )
+
+        queue_depths = Job.get_queue_depths()
+        self.assertDictEqual(queue_depths, {"default": 1, "testworker": 2})
+
+
+@override_settings(JOBS={"testjob": {"tasks": ["a"]}})
+class QueueDepthTestCase(TestCase):
+    def test_queue_depth(self):
+
+        Job.objects.create(name="testjob", state=Job.STATES.FAILED)
+        Job.objects.create(name="testjob", state=Job.STATES.NEW)
+        Job.objects.create(name="testjob", state=Job.STATES.FAILED)
+        Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
+        Job.objects.create(name="testjob", state=Job.STATES.READY)
+        Job.objects.create(
+            name="testjob", queue_name="testqueue", state=Job.STATES.READY
+        )
+        Job.objects.create(
+            name="testjob", queue_name="testqueue", state=Job.STATES.READY
+        )
+
+        stdout = StringIO()
+        call_command("queue_depth", stdout=stdout)
+        output = stdout.getvalue()
+        self.assertEqual(output.strip(), "event=queue_depths default=2")
+
+    def test_queue_depth_multiple_queues(self):
+
+        Job.objects.create(name="testjob", state=Job.STATES.FAILED)
+        Job.objects.create(name="testjob", state=Job.STATES.NEW)
+        Job.objects.create(name="testjob", state=Job.STATES.FAILED)
+        Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
+        Job.objects.create(name="testjob", state=Job.STATES.READY)
+        Job.objects.create(
+            name="testjob", queue_name="testqueue", state=Job.STATES.READY
+        )
+        Job.objects.create(
+            name="testjob", queue_name="testqueue", state=Job.STATES.READY
+        )
+
+        stdout = StringIO()
+        call_command("queue_depth", queue_name=("default", "testqueue",), stdout=stdout)
+        output = stdout.getvalue()
+        self.assertEqual(output.strip(), "event=queue_depths default=2 testqueue=2")
+
+    def test_queue_depth_for_queue_with_zero_jobs(self):
+        stdout = StringIO()
+        call_command("queue_depth", queue_name=("otherqueue",), stdout=stdout)
+        output = stdout.getvalue()
+        self.assertEqual(output.strip(), "event=queue_depths otherqueue=0")
+
+
 @freezegun.freeze_time()
 @mock.patch("django_dbq.management.commands.worker.sleep")
 @mock.patch("django_dbq.management.commands.worker.process_job")

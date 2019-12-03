@@ -6,7 +6,7 @@ from django_dbq.tasks import (
     get_creation_hook_name,
 )
 from jsonfield import JSONField
-from django.db.models import UUIDField
+from django.db.models import UUIDField, Count
 import datetime
 import logging
 import uuid
@@ -137,3 +137,17 @@ class Job(models.Model):
             logger.info("Running creation hook %s for new job", creation_hook_name)
             creation_hook_function = import_string(creation_hook_name)
             creation_hook_function(self)
+
+    @staticmethod
+    def get_queue_depths():
+        annotation_dicts = (
+            Job.objects.filter(state__in=(Job.STATES.READY, Job.STATES.NEW))
+            .values("queue_name")
+            .order_by("queue_name")
+            .annotate(Count("queue_name"))
+        )
+
+        return {
+            annotation_dict["queue_name"]: annotation_dict["queue_name__count"]
+            for annotation_dict in annotation_dicts
+        }
