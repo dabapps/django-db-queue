@@ -170,7 +170,7 @@ Jobs have a `state` field which can have one of the following values:
 
 #### Model methods
 
-##### Job.get_queue_depths_dict
+##### Job.get_queue_depths
 If you need to programatically get the depth of any queue you can run the following:
 ```python
 from django_dbq.models import Job
@@ -180,7 +180,7 @@ from django_dbq.models import Job
 Job.objects.create(name='do_work', workspace={})
 Job.objects.create(name='do_other_work', queue_name='other_queue', workspace={})
 
-queue_depths = Job.get_queue_depths_dict()
+queue_depths = Job.get_queue_depths()
 print(queue_depths)  # {"default": 1, "other_queue": 1}
 ```
 
