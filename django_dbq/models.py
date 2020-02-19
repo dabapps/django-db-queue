@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.utils.module_loading import import_string
 from django_dbq.tasks import (
     get_next_task_name,
@@ -54,7 +55,7 @@ class JobManager(models.Manager):
         Delete all jobs older than DELETE_JOBS_AFTER_HOURS
         """
         delete_jobs_in_states = [Job.STATES.FAILED, Job.STATES.COMPLETE]
-        delete_jobs_created_before = datetime.datetime.utcnow() - datetime.timedelta(
+        delete_jobs_created_before = timezone.now() - datetime.timedelta(
             hours=DELETE_JOBS_AFTER_HOURS
         )
         logger.info(
