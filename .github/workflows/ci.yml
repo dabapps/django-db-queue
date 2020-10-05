@@ -13,7 +13,7 @@ jobs:
         django: [2.2]
         database_url:
           - postgres://runner:password@localhost/project
-          - mysql://runner:password@127.0.0.1/project
+          - mysql://root:root@127.0.0.1/project
 
     services:
       postgres:
@@ -25,19 +25,12 @@ jobs:
           POSTGRES_USER: runner
           POSTGRES_PASSWORD: password
 
-      mysql:
-        image: mysql:5.6
-        ports:
-          - 3306:3306
-        env:
-          MYSQL_DATABASE: project
-          MYSQL_USER: runner
-          MYSQL_PASSWORD: password
-
     env:
       DATABASE_URL: ${{ matrix.database_url }}
 
     steps:
+    - name: Start MySQL
+      run: sudo systemctl start mysql.service
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
