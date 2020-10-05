@@ -6,6 +6,7 @@ from django_dbq.models import Job
 from simplesignals.process import WorkerProcessBase
 from time import sleep
 import logging
+from django_dbq.utils import run_job
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ def process_job(queue_name):
 
     try:
         task_function = import_string(job.next_task)
-        task_function(job)
+        run_job(task_function, job)
         job.update_next_task()
         if not job.next_task:
             job.state = Job.STATES.COMPLETE
@@ -51,7 +52,7 @@ def process_job(queue_name):
                 "Running failure hook %s for job id=%s", failure_hook_name, job.pk
             )
             failure_hook_function = import_string(failure_hook_name)
-            failure_hook_function(job, exception)
+            run_job(failure_hook_function, job, exception)
         else:
             logger.info("No failure hook for job id=%s", job.pk)
 

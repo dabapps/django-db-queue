@@ -11,6 +11,7 @@ from django.db.models import UUIDField, Count
 import datetime
 import logging
 import uuid
+from django_dbq.utils import run_job
 
 
 logger = logging.getLogger(__name__)
@@ -137,7 +138,7 @@ class Job(models.Model):
         if creation_hook_name:
             logger.info("Running creation hook %s for new job", creation_hook_name)
             creation_hook_function = import_string(creation_hook_name)
-            creation_hook_function(self)
+            run_job(creation_hook_function, self)
 
     @staticmethod
     def get_queue_depths():
