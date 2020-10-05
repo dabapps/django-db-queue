@@ -13,7 +13,7 @@ jobs:
         django: [2.2]
         database_url:
           - postgres://runner:password@localhost/project
-          - mysql://runner:password@localhost/project
+          - mysql://runner:password@127.0.0.1/project
 
     services:
       postgres:
