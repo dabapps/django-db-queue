@@ -84,4 +84,5 @@ setup(
     package_data=get_package_data(package),
     install_requires=install_requires,
     classifiers=[],
+    python_requires=">=3.6"
 )
