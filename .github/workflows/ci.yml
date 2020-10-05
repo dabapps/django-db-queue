@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         python: [3.6, 3.7, 3.8]
-        django: [2.2, 3.0, 3.1]
+        django: [2.2]
         database_url:
           - postgres://runner:password@localhost/project
           - mysql://runner:password@localhost/project
