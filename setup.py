@@ -17,7 +17,7 @@ author_email = "contact@dabapps.com"
 license = "BSD"
 install_requires = [
     "jsonfield==2.0.2",
-    "Django>=1.7",
+    "Django>=2.2",
     "simplesignals==0.3.0",
 ]
 
