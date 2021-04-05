@@ -1,17 +1,14 @@
 django-db-queue
 ==========
-[![Build Status](https://travis-ci.org/dabapps/django-db-queue.svg)](https://travis-ci.org/dabapps/django-db-queue)
 [![pypi release](https://img.shields.io/pypi/v/django-db-queue.svg)](https://pypi.python.org/pypi/django-db-queue)
 
-Simple databased-backed job queue. Jobs are defined in your settings, and are processed by management commands.
+Simple database-backed job queue. Jobs are defined in your settings, and are processed by management commands.
 
 Asynchronous tasks are run via a *job queue*. This system is designed to support multi-step job workflows.
 
 Supported and tested against:
-- Django 1.11 and 2.2
-- Python 3.5, 3.6, 3.7 and 3.8
-
-This package may still work with older versions of Django and Python but they aren't explicitly supported.
+- Django 3.1 and 3.2
+- Python 3.6, 3.7, 3.8 and 3.9
 
 ## Getting Started
 
@@ -27,6 +24,17 @@ Add `django_dbq` to your installed apps
         ...
         'django_dbq',
     )
+
+### Upgrading from 1.x to 2.x
+
+This library underwent significant changes in its 2.x release, which meant migrating automatically was not practical. Before upgrading, you should open a database shell and run the following commands. Note that this will **delete all your existing jobs**, so you should ensure all jobs are completed before proceeding, and make sure you don't need any data at all from the jobs table.
+
+```
+DROP TABLE django_dbq_job;
+DELETE FROM django_migrations WHERE app='django_dbq';
+```
+
+Then, run `python manage.py migrate` to recreate the jobs table.
 
 ### Describe your job
 
