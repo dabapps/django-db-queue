@@ -98,9 +98,7 @@ class Job(models.Model):
     objects = JobManager()
 
     def save(self, *args, **kwargs):
-        is_new = not Job.objects.filter(pk=self.pk).exists()
-
-        if is_new:
+        if self._state.adding:
             self.next_task = get_next_task_name(self.name)
             self.workspace = self.workspace or {}
 
