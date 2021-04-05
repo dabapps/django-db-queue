@@ -148,7 +148,7 @@ class QueueDepthTestCase(TestCase):
 @freezegun.freeze_time()
 @mock.patch("django_dbq.management.commands.worker.sleep")
 @mock.patch("django_dbq.management.commands.worker.process_job")
-class WorkerProcessDoWorkTestCase(TestCase):
+class WorkerProcessProcessJobTestCase(TestCase):
     def setUp(self):
         super().setUp()
         self.MockWorker = mock.MagicMock()
@@ -156,17 +156,17 @@ class WorkerProcessDoWorkTestCase(TestCase):
         self.MockWorker.rate_limit_in_seconds = 5
         self.MockWorker.last_job_finished = None
 
-    def test_do_work_no_previous_job_run(self, mock_process_job, mock_sleep):
-        Worker.do_work(self.MockWorker)
+    def test_process_job_no_previous_job_run(self, mock_process_job, mock_sleep):
+        Worker.process_job(self.MockWorker)
         self.assertEqual(mock_sleep.call_count, 1)
         self.assertEqual(mock_process_job.call_count, 1)
         self.assertEqual(self.MockWorker.last_job_finished, timezone.now())
 
-    def test_do_work_previous_job_too_soon(self, mock_process_job, mock_sleep):
+    def test_process_job_previous_job_too_soon(self, mock_process_job, mock_sleep):
         self.MockWorker.last_job_finished = timezone.now() - timezone.timedelta(
             seconds=2
         )
-        Worker.do_work(self.MockWorker)
+        Worker.process_job(self.MockWorker)
         self.assertEqual(mock_sleep.call_count, 1)
         self.assertEqual(mock_process_job.call_count, 0)
         self.assertEqual(
@@ -174,11 +174,11 @@ class WorkerProcessDoWorkTestCase(TestCase):
             timezone.now() - timezone.timedelta(seconds=2),
         )
 
-    def test_do_work_previous_job_long_time_ago(self, mock_process_job, mock_sleep):
+    def test_process_job_previous_job_long_time_ago(self, mock_process_job, mock_sleep):
         self.MockWorker.last_job_finished = timezone.now() - timezone.timedelta(
             seconds=7
         )
-        Worker.do_work(self.MockWorker)
+        Worker.process_job(self.MockWorker)
         self.assertEqual(mock_sleep.call_count, 1)
         self.assertEqual(mock_process_job.call_count, 1)
         self.assertEqual(self.MockWorker.last_job_finished, timezone.now())

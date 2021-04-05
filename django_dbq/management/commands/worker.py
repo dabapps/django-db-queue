@@ -3,9 +3,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django_dbq.models import Job
-from simplesignals.process import WorkerProcessBase
 from time import sleep
 import logging
+import signal
 
 
 logger = logging.getLogger(__name__)
@@ -74,17 +74,27 @@ def process_job(queue_name):
         raise
 
 
-class Worker(WorkerProcessBase):
-
-    process_title = "jobworker"
-
+class Worker:
     def __init__(self, name, rate_limit_in_seconds):
         self.queue_name = name
         self.rate_limit_in_seconds = rate_limit_in_seconds
+        self.alive = True
         self.last_job_finished = None
-        super(Worker, self).__init__()
+        self.init_signals()
 
-    def do_work(self):
+    def init_signals(self):
+        signal.signal(signal.SIGINT, self.shutdown)
+        signal.signal(signal.SIGQUIT, self.shutdown)
+        signal.signal(signal.SIGTERM, self.shutdown)
+
+    def shutdown(self):
+        self.alive = False
+
+    def run(self):
+        while self.alive:
+            self.process_job()
+
+    def process_job(self):
         sleep(1)
         if (
             self.last_job_finished
