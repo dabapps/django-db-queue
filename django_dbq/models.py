@@ -110,7 +110,7 @@ class Job(models.Model):
                 )
                 return  # cancel the save
 
-        return super(Job, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     def update_next_task(self):
         self.next_task = get_next_task_name(self.name, self.next_task) or ""
