@@ -6,8 +6,7 @@ from django_dbq.tasks import (
     get_failure_hook_name,
     get_creation_hook_name,
 )
-from jsonfield import JSONField
-from django.db.models import UUIDField, Count
+from django.db.models import JSONField, UUIDField, Count, TextChoices
 import datetime
 import logging
 import uuid
@@ -74,27 +73,19 @@ class JobManager(models.Manager):
 
 
 class Job(models.Model):
-    class STATES:
+    class STATES(TextChoices):
         NEW = "NEW"
         READY = "READY"
         PROCESSING = "PROCESSING"
         FAILED = "FAILED"
         COMPLETE = "COMPLETE"
 
-    STATE_CHOICES = [
-        (STATES.NEW, "NEW"),
-        (STATES.READY, "READY"),
-        (STATES.PROCESSING, "PROCESSING"),
-        (STATES.FAILED, "FAILED"),
-        (STATES.COMPLETE, "COMPLETE"),
-    ]
-
     id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
     state = models.CharField(
-        max_length=20, choices=STATE_CHOICES, default=STATES.NEW, db_index=True
+        max_length=20, choices=STATES.choices, default=STATES.NEW, db_index=True
     )
     next_task = models.CharField(max_length=100, blank=True)
     workspace = JSONField(null=True)
