@@ -16,9 +16,7 @@ author = "DabApps"
 author_email = "contact@dabapps.com"
 license = "BSD"
 install_requires = [
-    "jsonfield==2.0.2",
-    "Django>=2.2",
-    "simplesignals==0.3.0",
+    "Django>=3.1",
 ]
 
 long_description = """Simple database-backed job queue system"""
