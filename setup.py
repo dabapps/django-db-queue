@@ -17,7 +17,7 @@ author_email = "contact@dabapps.com"
 license = "BSD"
 install_requires = [
     "jsonfield==2.0.2",
-    "Django>=1.7",
+    "Django>=2.2",
     "simplesignals==0.3.0",
 ]
 
@@ -84,4 +84,5 @@ setup(
     package_data=get_package_data(package),
     install_requires=install_requires,
     classifiers=[],
+    python_requires=">=3.6"
 )

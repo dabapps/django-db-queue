@@ -1,0 +1,46 @@
+name: CI
+
+on: [pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-18.04
+
+    strategy:
+      matrix:
+        python: [3.6, 3.7, 3.8]
+        django: [2.2]
+        database_url:
+          - postgres://runner:password@localhost/project
+          - mysql://root:root@127.0.0.1/project
+
+    services:
+      postgres:
+        image: postgres:11
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: project
+          POSTGRES_USER: runner
+          POSTGRES_PASSWORD: password
+
+    env:
+      DATABASE_URL: ${{ matrix.database_url }}
+
+    steps:
+    - name: Start MySQL
+      run: sudo systemctl start mysql.service
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install dependencies
+      run: pip install -r test-requirements.txt
+    - name: Install Django
+      run: pip install -U django==${{ matrix.django }}
+    - name: Run tests
+      run: python manage.py test
+    - name: Run black
+      run: black --check django_dbq
