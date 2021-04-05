@@ -1,8 +1,11 @@
 import os
 import dj_database_url
 
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///:memory:")
+
 DATABASES = {
-    "default": dj_database_url.parse(os.environ["DATABASE_URL"]),
+    "default": dj_database_url.parse(DATABASE_URL),
 }
 
 INSTALLED_APPS = ("django_dbq",)
