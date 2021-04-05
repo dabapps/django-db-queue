@@ -38,34 +38,6 @@ def creation_hook(job):
 
 
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
-class JobManagementCommandTestCase(TestCase):
-    def test_create_job(self):
-        call_command("create_job", "testjob", stdout=StringIO())
-        job = Job.objects.get()
-        self.assertEqual(job.name, "testjob")
-        self.assertEqual(job.queue_name, "default")
-
-    def test_create_job_with_workspace(self):
-        workspace = '{"test": "test"}'
-        call_command("create_job", "testjob", workspace=workspace, stdout=StringIO())
-        job = Job.objects.get()
-        self.assertEqual(job.workspace, {"test": "test"})
-
-    def test_create_job_with_queue_name(self):
-        call_command("create_job", "testjob", queue_name="lol", stdout=StringIO())
-        job = Job.objects.get()
-        self.assertEqual(job.name, "testjob")
-        self.assertEqual(job.queue_name, "lol")
-
-    def test_errors_raised_correctly(self):
-        with self.assertRaises(CommandError):
-            call_command("create_job", stdout=StringIO())
-
-        with self.assertRaises(CommandError):
-            call_command("create_job", "some_other_job", stdout=StringIO())
-
-
-@override_settings(JOBS={"testjob": {"tasks": ["a"]}})
 class WorkerManagementCommandTestCase(TestCase):
     def test_worker_no_args(self):
         stdout = StringIO()

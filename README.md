@@ -209,15 +209,6 @@ jobs from the database which are in state `COMPLETE` or `FAILED` and were
 created more than 24 hours ago. This could be run, for example, as a cron task,
 to ensure the jobs table remains at a reasonable size.
 
-##### manage.py create_job
-For debugging/development purposes, a simple management command is supplied to create jobs:
-
-    manage.py create_job <job_name> --queue_name 'my_queue_name' --workspace '{"key": "value"}'
-
-The `workspace` flag is optional. If supplied, it must be a valid JSON string.
-
-`queue_name` is optional and defaults to `default`
-
 ##### manage.py worker
 To start a worker:
 
