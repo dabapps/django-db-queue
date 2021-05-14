@@ -87,7 +87,7 @@ class Worker:
         signal.signal(signal.SIGQUIT, self.shutdown)
         signal.signal(signal.SIGTERM, self.shutdown)
 
-    def shutdown(self):
+    def shutdown(self, signum, frame):
         self.alive = False
 
     def run(self):
