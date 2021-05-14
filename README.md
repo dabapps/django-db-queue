@@ -36,6 +36,8 @@ DELETE FROM django_migrations WHERE app='django_dbq';
 
 Then, run `python manage.py migrate` to recreate the jobs table.
 
+Note that version 2.x only supports Django 3.1 or newer. If you need support for Django 2.2, please stick with the latest 1.x release.
+
 ### Describe your job
 
 In e.g. project.common.jobs:
