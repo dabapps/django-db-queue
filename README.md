@@ -27,15 +27,6 @@ Add `django_dbq` to your installed apps
 
 ### Upgrading from 1.x to 2.x
 
-This library underwent significant changes in its 2.x release, which meant migrating automatically was not practical. Before upgrading, you should open a database shell and run the following commands. Note that this will **delete all your existing jobs**, so you should ensure all jobs are completed before proceeding, and make sure you don't need any data at all from the jobs table.
-
-```
-DROP TABLE django_dbq_job;
-DELETE FROM django_migrations WHERE app='django_dbq';
-```
-
-Then, run `python manage.py migrate` to recreate the jobs table.
-
 Note that version 2.x only supports Django 3.1 or newer. If you need support for Django 2.2, please stick with the latest 1.x release.
 
 ### Describe your job
