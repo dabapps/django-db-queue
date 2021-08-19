@@ -10,10 +10,7 @@ from django.utils import timezone
 from django_dbq.management.commands.worker import process_job, Worker
 from django_dbq.models import Job
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import StringIO
 
 
 def test_task(job=None):
@@ -35,34 +32,6 @@ def failure_hook(job, exception):
 
 def creation_hook(job):
     job.workspace["output"] = "creation hook ran"
-
-
-@override_settings(JOBS={"testjob": {"tasks": ["a"]}})
-class JobManagementCommandTestCase(TestCase):
-    def test_create_job(self):
-        call_command("create_job", "testjob", stdout=StringIO())
-        job = Job.objects.get()
-        self.assertEqual(job.name, "testjob")
-        self.assertEqual(job.queue_name, "default")
-
-    def test_create_job_with_workspace(self):
-        workspace = '{"test": "test"}'
-        call_command("create_job", "testjob", workspace=workspace, stdout=StringIO())
-        job = Job.objects.get()
-        self.assertEqual(job.workspace, {"test": "test"})
-
-    def test_create_job_with_queue_name(self):
-        call_command("create_job", "testjob", queue_name="lol", stdout=StringIO())
-        job = Job.objects.get()
-        self.assertEqual(job.name, "testjob")
-        self.assertEqual(job.queue_name, "lol")
-
-    def test_errors_raised_correctly(self):
-        with self.assertRaises(CommandError):
-            call_command("create_job", stdout=StringIO())
-
-        with self.assertRaises(CommandError):
-            call_command("create_job", "some_other_job", stdout=StringIO())
 
 
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
@@ -148,7 +117,7 @@ class QueueDepthTestCase(TestCase):
 @freezegun.freeze_time()
 @mock.patch("django_dbq.management.commands.worker.sleep")
 @mock.patch("django_dbq.management.commands.worker.process_job")
-class WorkerProcessDoWorkTestCase(TestCase):
+class WorkerProcessProcessJobTestCase(TestCase):
     def setUp(self):
         super().setUp()
         self.MockWorker = mock.MagicMock()
@@ -156,17 +125,17 @@ class WorkerProcessDoWorkTestCase(TestCase):
         self.MockWorker.rate_limit_in_seconds = 5
         self.MockWorker.last_job_finished = None
 
-    def test_do_work_no_previous_job_run(self, mock_process_job, mock_sleep):
-        Worker.do_work(self.MockWorker)
+    def test_process_job_no_previous_job_run(self, mock_process_job, mock_sleep):
+        Worker.process_job(self.MockWorker)
         self.assertEqual(mock_sleep.call_count, 1)
         self.assertEqual(mock_process_job.call_count, 1)
         self.assertEqual(self.MockWorker.last_job_finished, timezone.now())
 
-    def test_do_work_previous_job_too_soon(self, mock_process_job, mock_sleep):
+    def test_process_job_previous_job_too_soon(self, mock_process_job, mock_sleep):
         self.MockWorker.last_job_finished = timezone.now() - timezone.timedelta(
             seconds=2
         )
-        Worker.do_work(self.MockWorker)
+        Worker.process_job(self.MockWorker)
         self.assertEqual(mock_sleep.call_count, 1)
         self.assertEqual(mock_process_job.call_count, 0)
         self.assertEqual(
@@ -174,11 +143,11 @@ class WorkerProcessDoWorkTestCase(TestCase):
             timezone.now() - timezone.timedelta(seconds=2),
         )
 
-    def test_do_work_previous_job_long_time_ago(self, mock_process_job, mock_sleep):
+    def test_process_job_previous_job_long_time_ago(self, mock_process_job, mock_sleep):
         self.MockWorker.last_job_finished = timezone.now() - timezone.timedelta(
             seconds=7
         )
-        Worker.do_work(self.MockWorker)
+        Worker.process_job(self.MockWorker)
         self.assertEqual(mock_sleep.call_count, 1)
         self.assertEqual(mock_process_job.call_count, 1)
         self.assertEqual(self.MockWorker.last_job_finished, timezone.now())

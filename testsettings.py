@@ -1,20 +1,14 @@
 import os
 import dj_database_url
 
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///:memory:")
+
 DATABASES = {
-    "default": dj_database_url.parse(os.environ["DATABASE_URL"]),
+    "default": dj_database_url.parse(DATABASE_URL),
 }
 
 INSTALLED_APPS = ("django_dbq",)
-
-MIDDLEWARE_CLASSES = (
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-)
 
 SECRET_KEY = "abcde12345"
 

@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import jsonfield.fields
 import uuid
 
 from django.db.models import UUIDField
@@ -44,7 +43,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("next_task", models.CharField(max_length=100, blank=True)),
-                ("workspace", jsonfield.fields.JSONField(null=True)),
+                ("workspace", models.TextField(null=True)),
                 (
                     "queue_name",
                     models.CharField(db_index=True, max_length=20, default="default"),

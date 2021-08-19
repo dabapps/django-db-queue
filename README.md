@@ -1,17 +1,14 @@
 django-db-queue
 ==========
-[![Build Status](https://travis-ci.org/dabapps/django-db-queue.svg)](https://travis-ci.org/dabapps/django-db-queue)
 [![pypi release](https://img.shields.io/pypi/v/django-db-queue.svg)](https://pypi.python.org/pypi/django-db-queue)
 
-Simple databased-backed job queue. Jobs are defined in your settings, and are processed by management commands.
+Simple database-backed job queue. Jobs are defined in your settings, and are processed by management commands.
 
 Asynchronous tasks are run via a *job queue*. This system is designed to support multi-step job workflows.
 
 Supported and tested against:
-- Django 1.11 and 2.2
-- Python 3.5, 3.6, 3.7 and 3.8
-
-This package may still work with older versions of Django and Python but they aren't explicitly supported.
+- Django 3.1 and 3.2
+- Python 3.6, 3.7, 3.8 and 3.9
 
 ## Getting Started
 
@@ -27,6 +24,10 @@ Add `django_dbq` to your installed apps
         ...
         'django_dbq',
     )
+
+### Upgrading from 1.x to 2.x
+
+Note that version 2.x only supports Django 3.1 or newer. If you need support for Django 2.2, please stick with the latest 1.x release.
 
 ### Describe your job
 
@@ -208,15 +209,6 @@ There is a management command, `manage.py delete_old_jobs`, which deletes any
 jobs from the database which are in state `COMPLETE` or `FAILED` and were
 created more than 24 hours ago. This could be run, for example, as a cron task,
 to ensure the jobs table remains at a reasonable size.
-
-##### manage.py create_job
-For debugging/development purposes, a simple management command is supplied to create jobs:
-
-    manage.py create_job <job_name> --queue_name 'my_queue_name' --workspace '{"key": "value"}'
-
-The `workspace` flag is optional. If supplied, it must be a valid JSON string.
-
-`queue_name` is optional and defaults to `default`
 
 ##### manage.py worker
 To start a worker:
