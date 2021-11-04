@@ -68,11 +68,11 @@ class JobManager(models.Manager):
 
     def to_process(self, queue_name):
         return self.select_for_update().filter(
-            models.Q(queue_name=queue_name) &
-            models.Q(state__in=(Job.STATES.READY, Job.STATES.NEW)) &
-            models.Q(
-                models.Q(run_after__isnull=True) |
-                models.Q(run_after__lte=timezone.now())
+            models.Q(queue_name=queue_name)
+            & models.Q(state__in=(Job.STATES.READY, Job.STATES.NEW))
+            & models.Q(
+                models.Q(run_after__isnull=True)
+                | models.Q(run_after__lte=timezone.now())
             )
         )
 
