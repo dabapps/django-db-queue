@@ -129,6 +129,15 @@ Job.objects.create(name='critical_job', priority=2)
 
 Jobs will be ordered by their `priority` (highest to lowest) and then the time which they were created (oldest to newest) and processed in that order.
 
+### Scheduling jobs
+If you'd like to create a job but have it run at some time in the future, you can use the `run_after` field on the Job model:
+
+```python
+Job.objects.create(name='scheduled_job', run_after=timezone.now() + timedelta(minutes=10))
+```
+
+Of course, the job will only be run if your `python manage.py worker` process is running at the time when the job is scheduled to run. Otherwise, it will run the next time you start your worker process after that time has passed.
+
 ## Terminology
 
 ### Job
