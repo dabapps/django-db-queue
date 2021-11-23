@@ -68,7 +68,12 @@ class JobManager(models.Manager):
 
     def to_process(self, queue_name):
         return self.select_for_update().filter(
-            queue_name=queue_name, state__in=(Job.STATES.READY, Job.STATES.NEW)
+            models.Q(queue_name=queue_name)
+            & models.Q(state__in=(Job.STATES.READY, Job.STATES.NEW))
+            & models.Q(
+                models.Q(run_after__isnull=True)
+                | models.Q(run_after__lte=timezone.now())
+            )
         )
 
 
@@ -91,6 +96,7 @@ class Job(models.Model):
     workspace = JSONField(null=True)
     queue_name = models.CharField(max_length=20, default="default", db_index=True)
     priority = models.SmallIntegerField(default=0, db_index=True)
+    run_after = models.DateTimeField(null=True, db_index=True)
 
     class Meta:
         ordering = ["-priority", "created"]
