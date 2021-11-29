@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils import timezone
 
-from django_dbq.management.commands.worker import process_job, Worker
+from django_dbq.management.commands.worker import Worker
 from django_dbq.models import Job
 
 from io import StringIO
@@ -116,41 +116,40 @@ class QueueDepthTestCase(TestCase):
 
 @freezegun.freeze_time()
 @mock.patch("django_dbq.management.commands.worker.sleep")
-@mock.patch("django_dbq.management.commands.worker.process_job")
 class WorkerProcessProcessJobTestCase(TestCase):
     def setUp(self):
         super().setUp()
-        self.MockWorker = mock.MagicMock()
-        self.MockWorker.queue_name = "default"
-        self.MockWorker.rate_limit_in_seconds = 5
-        self.MockWorker.last_job_finished = None
+        self.mock_worker = mock.MagicMock()
+        self.mock_worker.queue_name = "default"
+        self.mock_worker.rate_limit_in_seconds = 5
+        self.mock_worker.last_job_finished = None
 
-    def test_process_job_no_previous_job_run(self, mock_process_job, mock_sleep):
-        Worker.process_job(self.MockWorker)
+    def test_process_job_no_previous_job_run(self, mock_sleep):
+        Worker.process_job(self.mock_worker)
         self.assertEqual(mock_sleep.call_count, 1)
-        self.assertEqual(mock_process_job.call_count, 1)
-        self.assertEqual(self.MockWorker.last_job_finished, timezone.now())
+        self.assertEqual(self.mock_worker._process_job.call_count, 1)
+        self.assertEqual(self.mock_worker.last_job_finished, timezone.now())
 
-    def test_process_job_previous_job_too_soon(self, mock_process_job, mock_sleep):
-        self.MockWorker.last_job_finished = timezone.now() - timezone.timedelta(
+    def test_process_job_previous_job_too_soon(self, mock_sleep):
+        self.mock_worker.last_job_finished = timezone.now() - timezone.timedelta(
             seconds=2
         )
-        Worker.process_job(self.MockWorker)
+        Worker.process_job(self.mock_worker)
         self.assertEqual(mock_sleep.call_count, 1)
-        self.assertEqual(mock_process_job.call_count, 0)
+        self.assertEqual(self.mock_worker._process_job.call_count, 0)
         self.assertEqual(
-            self.MockWorker.last_job_finished,
+            self.mock_worker.last_job_finished,
             timezone.now() - timezone.timedelta(seconds=2),
         )
 
-    def test_process_job_previous_job_long_time_ago(self, mock_process_job, mock_sleep):
-        self.MockWorker.last_job_finished = timezone.now() - timezone.timedelta(
+    def test_process_job_previous_job_long_time_ago(self, mock_sleep):
+        self.mock_worker.last_job_finished = timezone.now() - timezone.timedelta(
             seconds=7
         )
-        Worker.process_job(self.MockWorker)
+        Worker.process_job(self.mock_worker)
         self.assertEqual(mock_sleep.call_count, 1)
-        self.assertEqual(mock_process_job.call_count, 1)
-        self.assertEqual(self.MockWorker.last_job_finished, timezone.now())
+        self.assertEqual(self.mock_worker._process_job.call_count, 1)
+        self.assertEqual(self.mock_worker.last_job_finished, timezone.now())
 
 
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
@@ -246,7 +245,7 @@ class JobTaskTestCase(TestCase):
 class ProcessJobTestCase(TestCase):
     def test_process_job(self):
         job = Job.objects.create(name="testjob")
-        process_job("default")
+        Worker("default", 1)._process_job()
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.COMPLETE)
 
@@ -255,7 +254,7 @@ class ProcessJobTestCase(TestCase):
         Processing a different queue shouldn't touch our other job
         """
         job = Job.objects.create(name="testjob", queue_name="lol")
-        process_job("default")
+        Worker("default", 1)._process_job()
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.NEW)
 
@@ -294,7 +293,7 @@ class JobCreationHookTestCase(TestCase):
 class JobFailureHookTestCase(TestCase):
     def test_failure_hook(self):
         job = Job.objects.create(name="testjob")
-        process_job("default")
+        Worker("default", 1)._process_job()
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.FAILED)
         self.assertEqual(job.workspace["output"], "failure hook ran")

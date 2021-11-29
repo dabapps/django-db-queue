@@ -14,66 +14,6 @@ logger = logging.getLogger(__name__)
 DEFAULT_QUEUE_NAME = "default"
 
 
-def process_job(queue_name):
-    """This function grabs the next available job for a given queue, and runs its next task."""
-
-    with transaction.atomic():
-        job = Job.objects.get_ready_or_none(queue_name)
-        if not job:
-            return
-
-        logger.info(
-            'Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s',
-            job.name,
-            queue_name,
-            job.pk,
-            job.state,
-            job.next_task,
-        )
-        job.state = Job.STATES.PROCESSING
-        job.save()
-
-    try:
-        task_function = import_string(job.next_task)
-        task_function(job)
-        job.update_next_task()
-        if not job.next_task:
-            job.state = Job.STATES.COMPLETE
-        else:
-            job.state = Job.STATES.READY
-    except Exception as exception:
-        logger.exception("Job id=%s failed", job.pk)
-        job.state = Job.STATES.FAILED
-
-        failure_hook_name = job.get_failure_hook_name()
-        if failure_hook_name:
-            logger.info(
-                "Running failure hook %s for job id=%s", failure_hook_name, job.pk
-            )
-            failure_hook_function = import_string(failure_hook_name)
-            failure_hook_function(job, exception)
-        else:
-            logger.info("No failure hook for job id=%s", job.pk)
-
-    logger.info(
-        'Updating job: name="%s" id=%s state=%s next_task=%s',
-        job.name,
-        job.pk,
-        job.state,
-        job.next_task or "none",
-    )
-
-    try:
-        job.save()
-    except:
-        logger.error(
-            "Failed to save job: id=%s org=%s",
-            job.pk,
-            job.workspace.get("organisation_id"),
-        )
-        raise
-
-
 class Worker:
     def __init__(self, name, rate_limit_in_seconds):
         self.queue_name = name
@@ -103,8 +43,62 @@ class Worker:
         ):
             return
 
-        process_job(self.queue_name)
+        self._process_job()
+
         self.last_job_finished = timezone.now()
+
+    def _process_job(self):
+        with transaction.atomic():
+            job = Job.objects.get_ready_or_none(self.queue_name)
+            if not job:
+                return
+
+            logger.info(
+                'Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s',
+                job.name,
+                self.queue_name,
+                job.pk,
+                job.state,
+                job.next_task,
+            )
+            job.state = Job.STATES.PROCESSING
+            job.save()
+
+        try:
+            task_function = import_string(job.next_task)
+            task_function(job)
+            job.update_next_task()
+            if not job.next_task:
+                job.state = Job.STATES.COMPLETE
+            else:
+                job.state = Job.STATES.READY
+        except Exception as exception:
+            logger.exception("Job id=%s failed", job.pk)
+            job.state = Job.STATES.FAILED
+
+            failure_hook_name = job.get_failure_hook_name()
+            if failure_hook_name:
+                logger.info(
+                    "Running failure hook %s for job id=%s", failure_hook_name, job.pk
+                )
+                failure_hook_function = import_string(failure_hook_name)
+                failure_hook_function(job, exception)
+            else:
+                logger.info("No failure hook for job id=%s", job.pk)
+
+        logger.info(
+            'Updating job: name="%s" id=%s state=%s next_task=%s',
+            job.name,
+            job.pk,
+            job.state,
+            job.next_task or "none",
+        )
+
+        try:
+            job.save()
+        except:
+            logger.exception("Failed to save job: id=%s", job.pk)
+            raise
 
 
 class Command(BaseCommand):
