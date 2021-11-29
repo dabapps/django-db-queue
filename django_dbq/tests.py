@@ -222,6 +222,20 @@ class JobTestCase(TestCase):
         self.assertEqual(Job.objects.get_ready_or_none("default"), job_1)
         self.assertFalse(Job.objects.to_process("default").filter(id=job_2.id).exists())
 
+    def test_ignores_jobs_until_run_after_is_in_the_past(self):
+        job_1 = Job.objects.create(name="testjob")
+        job_2 = Job.objects.create(name="testjob", run_after=datetime(2021, 11, 4, 8))
+
+        with freezegun.freeze_time(datetime(2021, 11, 4, 7)):
+            self.assertEqual(
+                {job for job in Job.objects.to_process("default")}, {job_1}
+            )
+
+        with freezegun.freeze_time(datetime(2021, 11, 4, 9)):
+            self.assertEqual(
+                {job for job in Job.objects.to_process("default")}, {job_1, job_2}
+            )
+
     def test_get_next_ready_job_created(self):
         """
         Created jobs should be picked too.
