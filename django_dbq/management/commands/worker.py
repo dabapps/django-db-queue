@@ -20,6 +20,7 @@ class Worker:
         self.rate_limit_in_seconds = rate_limit_in_seconds
         self.alive = True
         self.last_job_finished = None
+        self.current_job = None
         self.init_signals()
 
     def init_signals(self):
@@ -63,6 +64,7 @@ class Worker:
             )
             job.state = Job.STATES.PROCESSING
             job.save()
+            self.current_job = job
 
         try:
             task_function = import_string(job.next_task)
@@ -99,6 +101,8 @@ class Worker:
         except:
             logger.exception("Failed to save job: id=%s", job.pk)
             raise
+
+        self.current_job = None
 
 
 class Command(BaseCommand):
