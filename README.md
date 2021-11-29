@@ -189,8 +189,13 @@ Jobs have a `state` field which can have one of the following values:
 * `NEW` (has been created, waiting for a worker process to run the next task)
 * `READY` (has run a task before, awaiting a worker process to run the next task)
 * `PROCESSING` (a task is currently being processed by a worker)
+* `STOPPING` (the worker process has received a signal from the OS requesting it to exit)
 * `COMPLETED` (all job tasks have completed successfully)
 * `FAILED` (a job task failed)
+
+#### State diagram
+
+![state diagram](states.png)
 
 ### API
 
