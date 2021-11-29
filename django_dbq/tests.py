@@ -153,6 +153,19 @@ class WorkerProcessProcessJobTestCase(TestCase):
 
 
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
+class ShutdownTestCase(TestCase):
+    def test_shutdown_sets_state_to_stopping(self):
+        job = Job.objects.create(name="testjob")
+        worker = Worker("default", 1)
+        worker.current_job = job
+
+        worker.shutdown(None, None)
+
+        job.refresh_from_db()
+        self.assertEqual(job.state, Job.STATES.STOPPING)
+
+
+@override_settings(JOBS={"testjob": {"tasks": ["a"]}})
 class JobTestCase(TestCase):
     def test_create_job(self):
         job = Job(name="testjob")

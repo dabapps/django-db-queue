@@ -30,6 +30,9 @@ class Worker:
 
     def shutdown(self, signum, frame):
         self.alive = False
+        if self.current_job:
+            self.current_job.state = Job.STATES.STOPPING
+            self.current_job.save(update_fields=["state"])
 
     def run(self):
         while self.alive:

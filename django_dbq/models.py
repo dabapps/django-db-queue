@@ -77,6 +77,7 @@ class Job(models.Model):
         NEW = "NEW"
         READY = "READY"
         PROCESSING = "PROCESSING"
+        STOPPING = "STOPPING"
         FAILED = "FAILED"
         COMPLETE = "COMPLETE"
 
