@@ -325,14 +325,18 @@ class DeleteOldJobsTestCase(TestCase):
         j2.created = two_days_ago
         j2.save()
 
-        j3 = Job.objects.create(name="testjob", state=Job.STATES.NEW)
+        j3 = Job.objects.create(name="testjob", state=Job.STATES.STOPPING)
         j3.created = two_days_ago
         j3.save()
 
-        j4 = Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
+        j4 = Job.objects.create(name="testjob", state=Job.STATES.NEW)
+        j4.created = two_days_ago
+        j4.save()
+
+        j5 = Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
 
         Job.objects.delete_old()
 
         self.assertEqual(Job.objects.count(), 2)
-        self.assertTrue(j3 in Job.objects.all())
         self.assertTrue(j4 in Job.objects.all())
+        self.assertTrue(j5 in Job.objects.all())

@@ -53,7 +53,11 @@ class JobManager(models.Manager):
         """
         Delete all jobs older than DELETE_JOBS_AFTER_HOURS
         """
-        delete_jobs_in_states = [Job.STATES.FAILED, Job.STATES.COMPLETE]
+        delete_jobs_in_states = [
+            Job.STATES.FAILED,
+            Job.STATES.COMPLETE,
+            Job.STATES.STOPPING,
+        ]
         delete_jobs_created_before = timezone.now() - datetime.timedelta(
             hours=DELETE_JOBS_AFTER_HOURS
         )
