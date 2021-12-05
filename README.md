@@ -25,6 +25,10 @@ Add `django_dbq` to your installed apps
         'django_dbq',
     )
 
+Run migrations
+
+    manage.py migrate
+
 ### Upgrading from 1.x to 2.x
 
 Note that version 2.x only supports Django 3.1 or newer. If you need support for Django 2.2, please stick with the latest 1.x release.
