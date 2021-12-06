@@ -20,10 +20,12 @@ Install from PIP
 
 Add `django_dbq` to your installed apps
 
-    INSTALLED_APPS = (
-        ...
-        'django_dbq',
-    )
+```python
+INSTALLED_APPS = [
+    ...,
+    "django_dbq",
+]
+```
 
 Run migrations
 
