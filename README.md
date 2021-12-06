@@ -160,7 +160,22 @@ Jobs are processed to completion by *tasks*. These are simply Python functions, 
 
 ### Workspace
 
-The *workspace* is an area that tasks within a single job can use to communicate with each other. It is implemented as a Python dictionary, available on the `job` instance passed to tasks as `job.workspace`. The initial workspace of a job can be empty, or can contain some parameters that the tasks require (for example, API access tokens, account IDs etc). A single task can edit the workspace, and the modified workspace will be passed on to the next task in the sequence. For example:
+The *workspace* is an area that can be used 1) to provide additional arg/kwargs to task functions, and 2) to categorize jobs with additional metadata. It is implemented as a Python dictionary, available on the `job` instance passed to tasks as `job.workspace`. The initial workspace of a job can be empty, or can contain some parameters that the tasks require (for example, API access tokens, account IDs etc).
+
+When creating a Job, the workspace is passed as a keyword argument:
+
+```python
+Job.objects.create(name='my_job', workspace={'key': value})
+```
+
+Then, the task function can access the workspace to get the data it needs to perform its task:
+
+```python
+def my_task(job):
+    cats_import = CatsImport.objects.get(pk=job.workspace['cats_import_id']
+```
+
+Tasks within a single job can use the workspace to communicate with each other. A single task can edit the workspace, and the modified workspace will be passed on to the next task in the sequence. For example:
 
     def my_first_task(job):
         job.workspace['message'] = 'Hello, task 2!'
@@ -168,10 +183,16 @@ The *workspace* is an area that tasks within a single job can use to communicate
     def my_second_task(job):
         logger.info("Task 1 says: %s" % job.workspace['message'])
 
-When creating a Job, the workspace is passed as a keyword argument:
+The workspace can be queried like any [JSONField](https://docs.djangoproject.com/en/3.2/topics/db/queries/#querying-jsonfield). For instance, if you wanted to display a list of jobs that a certain user had initiated, add `user_id` to the workspace when creating the job:
 
 ```python
-Job.objects.create(name='my_job', workspace={'key': value})
+Job.objects.create(name='foo', workspace={'user_id': request.user.id})
+```
+
+Then filter the query with it in the view that renders the list:
+
+```python
+user_jobs = Job.objects.filter(workspace__user_id=request.user.id)
 ```
 
 ### Worker process
