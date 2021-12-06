@@ -243,6 +243,10 @@ jobs in the "NEW" or "READY" states will be returned.
 
 It may be necessary to supply a DATABASE_PORT environment variable.
 
+## Windows support
+
+Windows is supported on a best-effort basis only, and is not covered by automated or manual testing.
+
 ## Code of conduct
 
 For guidelines regarding the code of conduct when contributing to this repository please review [https://www.dabapps.com/open-source/code-of-conduct/](https://www.dabapps.com/open-source/code-of-conduct/)
