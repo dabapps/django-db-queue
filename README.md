@@ -40,6 +40,7 @@ In e.g. project.common.jobs:
 ```python
 import time
 
+
 def my_task(job):
     logger.info("Working hard...")
     time.sleep(10)
@@ -52,8 +53,8 @@ In project.settings:
 
 ```python
 JOBS = {
-    'my_job': {
-        'tasks': ['project.common.jobs.my_task']
+    "my_job": {
+        "tasks": ["project.common.jobs.my_task"],
     },
 }
 ```
@@ -69,16 +70,16 @@ A failure hook receives the failed `Job` instance along with the unhandled excep
 
 ```python
 def my_task_failure_hook(job, e):
-    # delete some temporary files on the filesystem
+    ...  # clean up after failed job
 ```
 
 To ensure this hook gets run, simply add a `failure_hook` key to your job config like so:
 
 ```python
 JOBS = {
-    'my_job': {
-        'tasks': ['project.common.jobs.my_task'],
-        'failure_hook': 'project.common.jobs.my_task_failure_hook'
+    "my_job": {
+        "tasks": ["project.common.jobs.my_task"],
+        "failure_hook": "project.common.jobs.my_task_failure_hook",
     },
 }
 ```
@@ -91,16 +92,16 @@ A creation hook receives your `Job` instance as its only argument. Here's an exa
 
 ```python
 def my_task_creation_hook(job):
-    # configure something before running your job
+    ...  # configure something before running your job
 ```
 
 To ensure this hook gets run, simply add a `creation_hook` key to your job config like so:
 
 ```python
 JOBS = {
-    'my_job': {
-        'tasks': ['project.common.jobs.my_task'],
-        'creation_hook': 'project.common.jobs.my_task_creation_hook'
+    "my_job": {
+        "tasks": ["project.common.jobs.my_task"],
+        "creation_hook": "project.common.jobs.my_task_creation_hook",
     },
 }
 ```
@@ -116,7 +117,7 @@ In another terminal:
 Using the name you configured for your job in your settings, create an instance of Job.
 
 ```python
-Job.objects.create(name='my_job')
+Job.objects.create(name="my_job")
 ```
 
 ### Prioritising jobs
@@ -125,10 +126,11 @@ important emails to users. However, once an hour, you may need to run a _really_
 of emails to be dispatched before it can begin.
 
 In order to make sure that an important job is run before others, you can set the `priority` field to an integer higher than `0` (the default). For example:
+
 ```python
-Job.objects.create(name='normal_job')
-Job.objects.create(name='important_job', priority=1)
-Job.objects.create(name='critical_job', priority=2)
+Job.objects.create(name="normal_job")
+Job.objects.create(name="important_job", priority=1)
+Job.objects.create(name="critical_job", priority=2)
 ```
 
 Jobs will be ordered by their `priority` (highest to lowest) and then the time which they were created (oldest to newest) and processed in that order.
@@ -137,7 +139,10 @@ Jobs will be ordered by their `priority` (highest to lowest) and then the time w
 If you'd like to create a job but have it run at some time in the future, you can use the `run_after` field on the Job model:
 
 ```python
-Job.objects.create(name='scheduled_job', run_after=timezone.now() + timedelta(minutes=10))
+Job.objects.create(
+    name="scheduled_job",
+    run_after=(timezone.now() + timedelta(minutes=10)),
+)
 ```
 
 Of course, the scheduled job will only be run if your `python manage.py worker` process is running at the time when the job is scheduled to run. Otherwise, it will run the next time you start your worker process after that time has passed.
@@ -154,25 +159,27 @@ The top-level abstraction of a standalone piece of work. Jobs are stored in the 
 
 Jobs are processed to completion by *tasks*. These are simply Python functions, which must take a single argument - the `Job` instance being processed. A single job will often require processing by more than one task to be completed fully. Creating the task functions is the responsibility of the developer. For example:
 
-    def my_task(job):
-        logger.info("Doing some hard work")
-        do_some_hard_work()
+```python
+def my_task(job):
+    logger.info("Doing some hard work")
+    do_some_hard_work()
+```
 
 ### Workspace
 
-The *workspace* is an area that can be used 1) to provide additional arg/kwargs to task functions, and 2) to categorize jobs with additional metadata. It is implemented as a Python dictionary, available on the `job` instance passed to tasks as `job.workspace`. The initial workspace of a job can be empty, or can contain some parameters that the tasks require (for example, API access tokens, account IDs etc).
+The *workspace* is an area that can be used 1) to provide additional arguments to task functions, and 2) to categorize jobs with additional metadata. It is implemented as a Python dictionary, available on the `job` instance passed to tasks as `job.workspace`. The initial workspace of a job can be empty, or can contain some parameters that the tasks require (for example, API access tokens, account IDs etc).
 
 When creating a Job, the workspace is passed as a keyword argument:
 
 ```python
-Job.objects.create(name='my_job', workspace={'key': value})
+Job.objects.create(name="my_job", workspace={"key": value})
 ```
 
 Then, the task function can access the workspace to get the data it needs to perform its task:
 
 ```python
 def my_task(job):
-    cats_import = CatsImport.objects.get(pk=job.workspace['cats_import_id']
+    cats_import = CatsImport.objects.get(pk=job.workspace["cats_import_id"])
 ```
 
 Tasks within a single job can use the workspace to communicate with each other. A single task can edit the workspace, and the modified workspace will be passed on to the next task in the sequence. For example:
@@ -186,7 +193,7 @@ Tasks within a single job can use the workspace to communicate with each other. 
 The workspace can be queried like any [JSONField](https://docs.djangoproject.com/en/3.2/topics/db/queries/#querying-jsonfield). For instance, if you wanted to display a list of jobs that a certain user had initiated, add `user_id` to the workspace when creating the job:
 
 ```python
-Job.objects.create(name='foo', workspace={'user_id': request.user.id})
+Job.objects.create(name="foo", workspace={"user_id": request.user.id})
 ```
 
 Then filter the query with it in the view that renders the list:
@@ -228,8 +235,8 @@ from django_dbq.models import Job
 
 ...
 
-Job.objects.create(name='do_work', workspace={})
-Job.objects.create(name='do_other_work', queue_name='other_queue', workspace={})
+Job.objects.create(name="do_work", workspace={})
+Job.objects.create(name="do_other_work", queue_name="other_queue", workspace={})
 
 queue_depths = Job.get_queue_depths()
 print(queue_depths)  # {"default": 1, "other_queue": 1}
