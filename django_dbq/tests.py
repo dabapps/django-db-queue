@@ -103,7 +103,14 @@ class QueueDepthTestCase(TestCase):
         )
 
         stdout = StringIO()
-        call_command("queue_depth", queue_name=("default", "testqueue",), stdout=stdout)
+        call_command(
+            "queue_depth",
+            queue_name=(
+                "default",
+                "testqueue",
+            ),
+            stdout=stdout,
+        )
         output = stdout.getvalue()
         self.assertEqual(output.strip(), "event=queue_depths default=2 testqueue=2")
 
