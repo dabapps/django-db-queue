@@ -27,6 +27,8 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AlterField(
-            model_name="job", name="workspace", field=models.JSONField(null=True),
+            model_name="job",
+            name="workspace",
+            field=models.JSONField(null=True),
         ),
     ]

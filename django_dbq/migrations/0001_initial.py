@@ -49,6 +49,8 @@ class Migration(migrations.Migration):
                     models.CharField(db_index=True, max_length=20, default="default"),
                 ),
             ],
-            options={"ordering": ["-created"],},
+            options={
+                "ordering": ["-created"],
+            },
         ),
     ]
