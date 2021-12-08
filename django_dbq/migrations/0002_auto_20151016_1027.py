@@ -11,5 +11,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(name="job", options={"ordering": ["created"]},),
+        migrations.AlterModelOptions(
+            name="job",
+            options={"ordering": ["created"]},
+        ),
     ]

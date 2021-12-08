@@ -25,7 +25,11 @@ class Worker:
 
     def init_signals(self):
         signal.signal(signal.SIGINT, self.shutdown)
-        signal.signal(signal.SIGQUIT, self.shutdown)
+
+        # for Windows, which doesn't support the SIGQUIT signal
+        if hasattr(signal, "SIGQUIT"):
+            signal.signal(signal.SIGQUIT, self.shutdown)
+
         signal.signal(signal.SIGTERM, self.shutdown)
 
     def shutdown(self, signum, frame):

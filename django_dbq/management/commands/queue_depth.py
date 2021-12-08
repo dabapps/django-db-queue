@@ -16,7 +16,8 @@ class Command(BaseCommand):
         queue_depths_string = " ".join(
             [
                 "{queue_name}={queue_depth}".format(
-                    queue_name=queue_name, queue_depth=queue_depths.get(queue_name, 0),
+                    queue_name=queue_name,
+                    queue_depth=queue_depths.get(queue_name, 0),
                 )
                 for queue_name in queue_names
             ]
