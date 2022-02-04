@@ -16,7 +16,9 @@ Supported and tested against:
 
 Install from PIP
 
-    pip install django-db-queue
+```
+pip install django-db-queue
+```
 
 Add `django_dbq` to your installed apps
 
@@ -29,7 +31,9 @@ INSTALLED_APPS = [
 
 Run migrations
 
-    manage.py migrate
+```
+manage.py migrate
+```
 
 ### Upgrading from 1.x to 2.x
 
@@ -112,7 +116,9 @@ JOBS = {
 
 In another terminal:
 
-`python manage.py worker`
+```
+python manage.py worker
+```
 
 ### Create a job
 
@@ -186,11 +192,13 @@ def my_task(job):
 
 Tasks within a single job can use the workspace to communicate with each other. A single task can edit the workspace, and the modified workspace will be passed on to the next task in the sequence. For example:
 
-    def my_first_task(job):
-        job.workspace['message'] = 'Hello, task 2!'
+```python
+def my_first_task(job):
+    job.workspace['message'] = 'Hello, task 2!'
 
-    def my_second_task(job):
-        logger.info("Task 1 says: %s" % job.workspace['message'])
+def my_second_task(job):
+    logger.info("Task 1 says: %s" % job.workspace['message'])
+```
 
 The workspace can be queried like any [JSONField](https://docs.djangoproject.com/en/3.2/topics/db/queries/#querying-jsonfield). For instance, if you wanted to display a list of jobs that a certain user had initiated, add `user_id` to the workspace when creating the job:
 
@@ -212,9 +220,11 @@ A *worker process* is a long-running process, implemented as a Django management
 
 Jobs are configured in the Django `settings.py` file. The `JOBS` setting is a dictionary mapping a *job name* (eg `import_cats`) to a *list* of one or more task function paths. For example:
 
-    JOBS = {
-        'import_cats': ['apps.cat_importer.import_cats.step_one', 'apps.cat_importer.import_cats.step_two'],
-    }
+```python
+JOBS = {
+    'import_cats': ['apps.cat_importer.import_cats.step_one', 'apps.cat_importer.import_cats.step_two'],
+}
+```
 
 ### Job states
 
@@ -263,7 +273,9 @@ to ensure the jobs table remains at a reasonable size.
 ##### manage.py worker
 To start a worker:
 
-    manage.py worker [queue_name] [--rate_limit]
+```
+manage.py worker [queue_name] [--rate_limit]
+```
 
 - `queue_name` is optional, and will default to `default`
 - The `--rate_limit` flag is optional, and will default to `1`. It is the minimum number of seconds that must have elapsed before a subsequent job can be run.
