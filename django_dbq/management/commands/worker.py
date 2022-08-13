@@ -15,9 +15,11 @@ DEFAULT_QUEUE_NAME = "default"
 
 
 class Worker:
-    def __init__(self, name, rate_limit_in_seconds):
+    def __init__(self, name, rate_limit_in_seconds, shift_limit_in_seconds):
         self.queue_name = name
         self.rate_limit_in_seconds = rate_limit_in_seconds
+        self.shift_limit_in_seconds = shift_limit_in_seconds
+        self.shift_start = timezone.now()
         self.alive = True
         self.last_job_finished = None
         self.current_job = None
@@ -39,7 +41,7 @@ class Worker:
             self.current_job.save(update_fields=["state"])
 
     def run(self):
-        while self.alive:
+        while self.alive and self._shift_availability():
             self.process_job()
 
     def process_job(self):
@@ -111,6 +113,24 @@ class Worker:
 
         self.current_job = None
 
+    def _shift_availability(self):
+        """
+        Setting a value for shift_limit_in_seconds enables the worker to be run via a CRON Job for a period of time,
+        whereby worker will seek further jobs if time remains in the shift. If the shift_limit_in_seconds is
+        exceeded once a job is started it will still run to completion, regardless of the time remaining.
+        Consequently, the duration of the CRON Interval should be greater than the anticipated duration of the
+        longest Job.
+        If shift_limit_in_seconds is not supplied, the default of 0 will be used and the worker will continue to run
+        until shutdown.
+        """
+        if self.shift_limit_in_seconds <= 0:
+            return True
+        elif self.shift_limit_in_seconds > 0 and (timezone.now() - self.shift_start).total_seconds() < \
+                self.shift_limit_in_seconds:
+            return True
+        else:
+            return False
+
 
 class Command(BaseCommand):
 
@@ -125,6 +145,15 @@ class Command(BaseCommand):
             default=1,
             type=int,
         )
+        parser.add_argument(
+            "--shift_limit",
+            help="The time limit in seconds within which the worker can process new jobs. The default rate "
+                 "limit is 0 seconds, which disables this argument, allowing the worker to run indefinitely.",
+            nargs="?",
+            default=0,
+            type=int,
+        )
+
         parser.add_argument(
             "--dry-run",
             action="store_true",
@@ -142,13 +171,14 @@ class Command(BaseCommand):
 
         queue_name = options["queue_name"]
         rate_limit_in_seconds = options["rate_limit"]
+        shift_limit_in_seconds = options["shift_limit"]
 
         self.stdout.write(
-            'Starting job worker for queue "%s" with rate limit %s/s'
-            % (queue_name, rate_limit_in_seconds)
+            'Starting job worker for queue "%s" with rate limit %s/s and a shift constraint of %s seconds.'
+            % (queue_name, rate_limit_in_seconds, shift_limit_in_seconds)
         )
 
-        worker = Worker(queue_name, rate_limit_in_seconds)
+        worker = Worker(queue_name, rate_limit_in_seconds, shift_limit_in_seconds)
 
         if options["dry_run"]:
             return
