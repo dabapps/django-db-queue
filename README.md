@@ -274,11 +274,16 @@ to ensure the jobs table remains at a reasonable size.
 To start a worker:
 
 ```
-manage.py worker [queue_name] [--rate_limit]
+manage.py worker [queue_name] [--rate_limit] [--shift_limit]
 ```
 
 - `queue_name` is optional, and will default to `default`
 - The `--rate_limit` flag is optional, and will default to `1`. It is the minimum number of seconds that must have elapsed before a subsequent job can be run.
+- The `--shift_limit` flag is optional, and will default to `0`. Setting a value for `--shift_limit` enables the worker to be run via a CRON Job for a limited period of time, whereby 
+  the worker will seek further jobs if time remains in the shift. If the `--shift_limit` is exceeded once a job is 
+  started, the job will still run to completion, regardless of the time remaining. Consequently, the duration of the 
+  CRON Interval should be greater than the anticipated duration of the longest Job. If `--shift_limit` is 
+  not supplied, the default of `0` will be used and the worker will continue to run until shutdown.
 
 ##### manage.py queue_depth
 If you'd like to check your queue depth from the command line, you can run `manage.py queue_depth [queue_name [queue_name ...]]` and any
