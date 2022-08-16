@@ -175,12 +175,12 @@ class Command(BaseCommand):
 
         if shift_limit_in_seconds:
             self.stdout.write(
-                'Starting job worker for queue "%s" with rate limit %s/s and a shift constraint of %s seconds.'
+                'Starting job worker for queue "%s" with rate limit of one job per %s second(s) and a shift constraint of %s seconds.'
                 % (queue_name, rate_limit_in_seconds, shift_limit_in_seconds)
             )
         else:
             self.stdout.write(
-                'Starting job worker for queue "%s" with rate limit %s/s.'
+                'Starting job worker for queue "%s" with rate limit of one job per %s second(s).'
                 % (queue_name, rate_limit_in_seconds)
             )
 
