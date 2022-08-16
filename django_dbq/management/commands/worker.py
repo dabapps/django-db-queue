@@ -144,7 +144,7 @@ class Command(BaseCommand):
         rate_limit_in_seconds = options["rate_limit"]
 
         self.stdout.write(
-            'Starting job worker for queue "%s" with rate limit %s/s'
+            'Starting job worker for queue "%s" with rate limit of one job per %s second(s)'
             % (queue_name, rate_limit_in_seconds)
         )
 
