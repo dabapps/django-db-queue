@@ -376,7 +376,7 @@ class ShiftTestCase(TestCase):
         stdout = StringIO()
         call_command("worker", rate_limit=2, shift_limit=1, stdout=stdout)
         output = stdout.getvalue()
-        self.assertTrue("rate limit 2/s and a shift constraint of 1 seconds" in output)
+        self.assertTrue("rate limit of one job per 2 second(s) and a shift constraint of 1 seconds" in output)
         self.assertEqual(Job.objects.filter(state=Job.STATES.NEW).count(), 1)
         self.assertEqual(Job.objects.filter(state=Job.STATES.COMPLETE).count(), 1)
 
@@ -386,7 +386,7 @@ class ShiftTestCase(TestCase):
         stdout = StringIO()
         call_command("worker", rate_limit=1, shift_limit=1, stdout=stdout)
         output = stdout.getvalue()
-        self.assertTrue("rate limit 1/s and a shift constraint of 1 seconds" in output)
+        self.assertTrue("rate limit of one job per 1 second(s) and a shift constraint of 1 seconds" in output)
         self.assertEqual(Job.objects.filter(state=Job.STATES.NEW).count(), 1)
         self.assertEqual(Job.objects.filter(state=Job.STATES.COMPLETE).count(), 1)
 
@@ -396,7 +396,7 @@ class ShiftTestCase(TestCase):
         stdout = StringIO()
         call_command("worker", rate_limit=1, shift_limit=2, stdout=stdout)
         output = stdout.getvalue()
-        self.assertTrue("rate limit 1/s and a shift constraint of 2 seconds" in output)
+        self.assertTrue("rate limit of one job per 1 second(s) and a shift constraint of 2 seconds" in output)
         self.assertEqual(Job.objects.filter(state=Job.STATES.NEW).count(), 0)
         self.assertEqual(Job.objects.filter(state=Job.STATES.COMPLETE).count(), 2)
 
@@ -408,10 +408,10 @@ class ShiftTestCase(TestCase):
         stdout = StringIO()
         call_command("worker", rate_limit=1, shift_limit=2, stdout=stdout)
         output = stdout.getvalue()
-        self.assertTrue("rate limit 1/s and a shift constraint of 2 seconds" in output)
+        self.assertTrue("rate limit of one job per 1 second(s) and a shift constraint of 2 seconds" in output)
         call_command("worker", rate_limit=1, shift_limit=1, stdout=stdout)
         output = stdout.getvalue()
-        self.assertTrue("rate limit 1/s and a shift constraint of 1 seconds" in output)
+        self.assertTrue("rate limit of one job per 1 second(s) and a shift constraint of 1 seconds" in output)
         self.assertEqual(Job.objects.filter(state=Job.STATES.NEW).count(), 1)
         self.assertEqual(Job.objects.filter(state=Job.STATES.COMPLETE).count(), 3)
 
