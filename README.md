@@ -7,8 +7,8 @@ Simple database-backed job queue. Jobs are defined in your settings, and are pro
 Asynchronous tasks are run via a *job queue*. This system is designed to support multi-step job workflows.
 
 Supported and tested against:
-- Django 3.2 and 4.0
-- Python 3.6, 3.7, 3.8, 3.9 and 3.10
+- Django 3.2, 4.0, 4.1
+- Python 3.7, 3.8, 3.9, 3.10, 3.11
 
 ## Getting Started
 
