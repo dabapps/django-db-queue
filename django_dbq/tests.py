@@ -293,6 +293,16 @@ class ProcessJobTestCase(TestCase):
         self.assertEqual(job.state, Job.STATES.NEW)
 
 
+@override_settings(JOBS={"testjob": {"tasks": ["django_dbq.tests.test_task"]}})
+class DrainTestCase(TestCase):
+    def test_drain(self):
+        jobs = [Job.objects.create(name="testjob") for _ in range(3)]
+        call_command("worker", drain=True)
+        for job in jobs:
+            job.refresh_from_db()
+            self.assertEqual(job.state, Job.STATES.COMPLETE)
+
+
 @override_settings(
     JOBS={
         "testjob": {
