@@ -26,6 +26,10 @@ def failing_task(job):
     raise Exception("uh oh")
 
 
+def shift_task(job):
+    job.workspace["message"] = f"{job.id} ran"
+
+
 def failure_hook(job, exception):
     job.workspace["output"] = "failure hook ran"
 
@@ -163,7 +167,7 @@ class WorkerProcessProcessJobTestCase(TestCase):
 class ShutdownTestCase(TestCase):
     def test_shutdown_sets_state_to_stopping(self):
         job = Job.objects.create(name="testjob")
-        worker = Worker("default", 1)
+        worker = Worker("default", 1, 0)
         worker.current_job = job
 
         worker.shutdown(None, None)
@@ -279,7 +283,7 @@ class JobTaskTestCase(TestCase):
 class ProcessJobTestCase(TestCase):
     def test_process_job(self):
         job = Job.objects.create(name="testjob")
-        Worker("default", 1)._process_job()
+        Worker("default", 1, 0)._process_job()
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.COMPLETE)
 
@@ -288,7 +292,7 @@ class ProcessJobTestCase(TestCase):
         Processing a different queue shouldn't touch our other job
         """
         job = Job.objects.create(name="testjob", queue_name="lol")
-        Worker("default", 1)._process_job()
+        Worker("default", 1, 0)._process_job()
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.NEW)
 
@@ -327,7 +331,7 @@ class JobCreationHookTestCase(TestCase):
 class JobFailureHookTestCase(TestCase):
     def test_failure_hook(self):
         job = Job.objects.create(name="testjob")
-        Worker("default", 1)._process_job()
+        Worker("default", 1, 0)._process_job()
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.FAILED)
         self.assertEqual(job.workspace["output"], "failure hook ran")
@@ -361,3 +365,54 @@ class DeleteOldJobsTestCase(TestCase):
         self.assertEqual(Job.objects.count(), 2)
         self.assertTrue(j4 in Job.objects.all())
         self.assertTrue(j5 in Job.objects.all())
+
+
+@override_settings(JOBS={"testshift": {"tasks": ["django_dbq.tests.shift_task"]}})
+class ShiftTestCase(TestCase):
+    """ Tests various combinations of rate_limit and shift_limit in terms of their impact on processing jobs"""
+    def test_rate_with_shorter_shift_limit(self):
+        Job.objects.create(name="testshift")
+        Job.objects.create(name="testshift")
+        stdout = StringIO()
+        call_command("worker", rate_limit=2, shift_limit=1, stdout=stdout)
+        output = stdout.getvalue()
+        self.assertTrue("rate limit of one job per 2 second(s) and a shift constraint of 1 seconds" in output)
+        self.assertEqual(Job.objects.filter(state=Job.STATES.NEW).count(), 1)
+        self.assertEqual(Job.objects.filter(state=Job.STATES.COMPLETE).count(), 1)
+
+    def test_rate_with_equal_shift_limit(self):
+        Job.objects.create(name="testshift")
+        Job.objects.create(name="testshift")
+        stdout = StringIO()
+        call_command("worker", rate_limit=1, shift_limit=1, stdout=stdout)
+        output = stdout.getvalue()
+        self.assertTrue("rate limit of one job per 1 second(s) and a shift constraint of 1 seconds" in output)
+        self.assertEqual(Job.objects.filter(state=Job.STATES.NEW).count(), 1)
+        self.assertEqual(Job.objects.filter(state=Job.STATES.COMPLETE).count(), 1)
+
+    def test_rate_with_longer_shift_limit(self):
+        Job.objects.create(name="testshift")
+        Job.objects.create(name="testshift")
+        stdout = StringIO()
+        call_command("worker", rate_limit=1, shift_limit=2, stdout=stdout)
+        output = stdout.getvalue()
+        self.assertTrue("rate limit of one job per 1 second(s) and a shift constraint of 2 seconds" in output)
+        self.assertEqual(Job.objects.filter(state=Job.STATES.NEW).count(), 0)
+        self.assertEqual(Job.objects.filter(state=Job.STATES.COMPLETE).count(), 2)
+
+    def test_rate_with_two_workers(self):
+        Job.objects.create(name="testshift")
+        Job.objects.create(name="testshift")
+        Job.objects.create(name="testshift")
+        Job.objects.create(name="testshift")
+        stdout = StringIO()
+        call_command("worker", rate_limit=1, shift_limit=2, stdout=stdout)
+        output = stdout.getvalue()
+        self.assertTrue("rate limit of one job per 1 second(s) and a shift constraint of 2 seconds" in output)
+        call_command("worker", rate_limit=1, shift_limit=1, stdout=stdout)
+        output = stdout.getvalue()
+        self.assertTrue("rate limit of one job per 1 second(s) and a shift constraint of 1 seconds" in output)
+        self.assertEqual(Job.objects.filter(state=Job.STATES.NEW).count(), 1)
+        self.assertEqual(Job.objects.filter(state=Job.STATES.COMPLETE).count(), 3)
+
+
