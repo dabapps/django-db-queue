@@ -371,3 +371,17 @@ class DeleteOldJobsTestCase(TestCase):
         self.assertEqual(Job.objects.count(), 2)
         self.assertTrue(j4 in Job.objects.all())
         self.assertTrue(j5 in Job.objects.all())
+
+    def test_delete_old_jobs_with_custom_hours_argument(self):
+        j1 = Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
+        j1.created = timezone.now() - timedelta(days=5)
+        j1.save()
+
+        j2 = Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
+        j2.created = timezone.now() - timedelta(days=3)
+        j2.save()
+
+        Job.objects.delete_old(hours=24 * 4)
+
+        self.assertEqual(Job.objects.count(), 1)
+        self.assertTrue(j2 in Job.objects.all())
