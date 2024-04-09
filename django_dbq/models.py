@@ -15,7 +15,7 @@ import uuid
 logger = logging.getLogger(__name__)
 
 
-DELETE_JOBS_AFTER_HOURS = 24
+DEFAULT_DELETE_JOBS_AFTER_HOURS = 24
 
 
 class JobManager(models.Manager):
@@ -49,9 +49,9 @@ class JobManager(models.Manager):
                     retries_left,
                 )
 
-    def delete_old(self):
+    def delete_old(self, hours=None):
         """
-        Delete all jobs older than DELETE_JOBS_AFTER_HOURS
+        Delete all jobs older than hours, or DEFAULT_DELETE_JOBS_AFTER_HOURS
         """
         delete_jobs_in_states = [
             Job.STATES.FAILED,
@@ -59,7 +59,7 @@ class JobManager(models.Manager):
             Job.STATES.STOPPING,
         ]
         delete_jobs_created_before = timezone.now() - datetime.timedelta(
-            hours=DELETE_JOBS_AFTER_HOURS
+            hours=hours or DEFAULT_DELETE_JOBS_AFTER_HOURS
         )
         logger.info(
             "Deleting all job in states %s created before %s",
