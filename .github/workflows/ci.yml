@@ -9,13 +9,21 @@ jobs:
 
     strategy:
       matrix:
-        python: ["3.8", "3.9", "3.10", "3.11"]
-        django: ["3.2", "4.0", "4.1", "4.2"]
+        python: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        django: ["3.2", "4.0", "4.1", "4.2", "5.0"]
         exclude:
           - python: "3.11"
             django: "3.2"
+          - python: "3.12"
+            django: "3.2"
           - python: "3.11"
             django: "4.0"
+          - python: "3.12"
+            django: "4.0"
+          - python: "3.8"
+            django: "5.0"
+          - python: "3.9"
+            django: "5.0"
         database_url:
           - postgres://runner:password@localhost/project
           - mysql://root:root@127.0.0.1/project
@@ -23,7 +31,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:12
+        image: postgres
         ports:
           - 5432:5432
         env:

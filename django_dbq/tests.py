@@ -13,6 +13,14 @@ from django_dbq.models import Job
 from io import StringIO
 
 
+try:
+    utc = timezone.utc
+except AttributeError:
+    from datetime import timezone as datetime_timezone
+
+    utc = datetime_timezone.utc
+
+
 def test_task(job=None):
     pass  # pragma: no cover
 
@@ -189,7 +197,7 @@ class JobTestCase(TestCase):
         Job.objects.create(name="testjob", state=Job.STATES.READY)
         Job.objects.create(name="testjob", state=Job.STATES.PROCESSING)
         expected = Job.objects.create(name="testjob", state=Job.STATES.READY)
-        expected.created = datetime.now() - timedelta(minutes=1)
+        expected.created = timezone.now() - timedelta(minutes=1)
         expected.save()
 
         self.assertEqual(Job.objects.get_ready_or_none("default"), expected)
@@ -231,7 +239,9 @@ class JobTestCase(TestCase):
 
     def test_ignores_jobs_until_run_after_is_in_the_past(self):
         job_1 = Job.objects.create(name="testjob")
-        job_2 = Job.objects.create(name="testjob", run_after=datetime(2021, 11, 4, 8))
+        job_2 = Job.objects.create(
+            name="testjob", run_after=datetime(2021, 11, 4, 8, tzinfo=utc)
+        )
 
         with freezegun.freeze_time(datetime(2021, 11, 4, 7)):
             self.assertEqual(
@@ -256,7 +266,7 @@ class JobTestCase(TestCase):
         Job.objects.create(name="testjob", state=Job.STATES.NEW)
         Job.objects.create(name="testjob", state=Job.STATES.PROCESSING)
         expected = Job.objects.create(name="testjob", state=Job.STATES.NEW)
-        expected.created = datetime.now() - timedelta(minutes=1)
+        expected.created = timezone.now() - timedelta(minutes=1)
         expected.save()
 
         self.assertEqual(Job.objects.get_ready_or_none("default"), expected)
@@ -336,7 +346,7 @@ class JobFailureHookTestCase(TestCase):
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
 class DeleteOldJobsTestCase(TestCase):
     def test_delete_old_jobs(self):
-        two_days_ago = datetime.utcnow() - timedelta(days=2)
+        two_days_ago = timezone.now() - timedelta(days=2)
 
         j1 = Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
         j1.created = two_days_ago
