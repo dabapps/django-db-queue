@@ -17,6 +17,7 @@ try:
     utc = timezone.utc
 except AttributeError:
     from datetime import timezone as datetime_timezone
+
     utc = datetime_timezone.utc
 
 
@@ -238,7 +239,9 @@ class JobTestCase(TestCase):
 
     def test_ignores_jobs_until_run_after_is_in_the_past(self):
         job_1 = Job.objects.create(name="testjob")
-        job_2 = Job.objects.create(name="testjob", run_after=datetime(2021, 11, 4, 8, tzinfo=utc))
+        job_2 = Job.objects.create(
+            name="testjob", run_after=datetime(2021, 11, 4, 8, tzinfo=utc)
+        )
 
         with freezegun.freeze_time(datetime(2021, 11, 4, 7)):
             self.assertEqual(
