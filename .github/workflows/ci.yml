@@ -20,6 +20,10 @@ jobs:
             django: "4.0"
           - python: "3.12"
             django: "4.0"
+          - python: "3.8"
+            django: "5.0"
+          - python: "3.9"
+            django: "5.0"
         database_url:
           - postgres://runner:password@localhost/project
           - mysql://root:root@127.0.0.1/project
