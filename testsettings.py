@@ -19,3 +19,5 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO",},
     "loggers": {"django_dbq": {"level": "CRITICAL", "propagate": True,},},
 }
+
+USE_TZ = True
