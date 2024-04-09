@@ -267,8 +267,7 @@ in the dict returned by this method.
 ##### manage.py delete_old_jobs
 There is a management command, `manage.py delete_old_jobs`, which deletes any
 jobs from the database which are in state `COMPLETE` or `FAILED` and were
-created more than 24 hours ago. This could be run, for example, as a cron task,
-to ensure the jobs table remains at a reasonable size.
+created more than (by default) 24 hours ago. This could be run, for example, as a cron task, to ensure the jobs table remains at a reasonable size. Use the `--hours` argument to control the age of jobs that will be deleted.
 
 ##### manage.py worker
 To start a worker:
