@@ -285,6 +285,12 @@ jobs in the "NEW" or "READY" states will be returned.
 
 **Important:** If you misspell or provide a queue name which does not have any jobs, a depth of 0 will always be returned.
 
+### Gotcha: `bulk_create`
+
+Because the `Job` model has logic in its `save` method, and because `save` doesn't get called when using `bulk_create`, you can't easily use `bulk_create` to create multiple `Job` instances at the same time.
+
+If you really need to do this, you should be able to get it to work by using `django_dbq.tasks.get_next_task_name` to compute the next task name from the `name` of the job, and then use that value to populate the `next_task` field on each of the unsaved `Job` instances before calling `bulk_create`. Note that if you use the approach, the job's `creation_hook` will not be called.
+
 ## Testing
 
 It may be necessary to supply a DATABASE_PORT environment variable.
