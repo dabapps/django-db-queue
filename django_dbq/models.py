@@ -3,6 +3,8 @@ from django.utils import timezone
 from django.utils.module_loading import import_string
 from django_dbq.tasks import (
     get_next_task_name,
+    get_pre_task_hook_name,
+    get_post_task_hook_name,
     get_failure_hook_name,
     get_creation_hook_name,
 )
@@ -126,11 +128,31 @@ class Job(models.Model):
     def update_next_task(self):
         self.next_task = get_next_task_name(self.name, self.next_task) or ""
 
+    def get_pre_task_hook_name(self):
+        return get_pre_task_hook_name(self.name)
+
+    def get_post_task_hook_name(self):
+        return get_post_task_hook_name(self.name)
+
     def get_failure_hook_name(self):
         return get_failure_hook_name(self.name)
 
     def get_creation_hook_name(self):
         return get_creation_hook_name(self.name)
+
+    def run_pre_task_hook(self):
+        pre_task_hook_name = self.get_pre_task_hook_name()
+        if pre_task_hook_name:
+            logger.info("Running pre_task hook %s for new job", pre_task_hook_name)
+            pre_task_hook_function = import_string(pre_task_hook_name)
+            pre_task_hook_function(self)
+
+    def run_post_task_hook(self):
+        post_task_hook_name = self.get_post_task_hook_name()
+        if post_task_hook_name:
+            logger.info("Running post_task hook %s for new job", post_task_hook_name)
+            post_task_hook_function = import_string(post_task_hook_name)
+            post_task_hook_function(self)
 
     def run_creation_hook(self):
         creation_hook_name = self.get_creation_hook_name()

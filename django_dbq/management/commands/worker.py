@@ -61,6 +61,8 @@ class Worker:
             if not job:
                 return
 
+            job.run_pre_task_hook()
+
             logger.info(
                 'Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s',
                 job.name,
@@ -108,6 +110,8 @@ class Worker:
         except:
             logger.exception("Failed to save job: id=%s", job.pk)
             raise
+
+        job.run_post_task_hook()
 
         self.current_job = None
 

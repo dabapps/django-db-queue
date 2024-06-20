@@ -112,6 +112,29 @@ JOBS = {
 }
 ```
 
+#### Pre & Post Task Hooks
+You can also run pre task or post task hooks, which happen in the normal processing of your `Job` instances and are executed in the worker process.
+
+Both pre and post task hooks receive your `Job` instance as their only argument. Here's an example:
+
+```python
+def my_pre_task_hook(job):
+    ...  # configure something before running your task
+```
+
+To ensure these hooks gets run, simply add a `pre_task_hook` or `post_task_hook` key (or both, if needed) to your job config like so:
+
+```python
+JOBS = {
+    "my_job": {
+        "tasks": ["project.common.jobs.my_task"],
+        "pre_task_hook": "project.common.jobs.my_pre_task_hook",
+        "post_task_hook": "project.common.jobs.my_post_task_hook",
+    },
+}
+```
+
+
 ### Start the worker
 
 In another terminal:

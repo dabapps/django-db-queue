@@ -34,12 +34,25 @@ def failing_task(job):
     raise Exception("uh oh")
 
 
+def pre_task_hook(job):
+    job.workspace["output"] = "pre task hook ran"
+    job.workspace["job_id"] = str(job.id)
+
+
+def post_task_hook(job):
+    job.workspace["output"] = "post task hook ran"
+    job.workspace["job_id"] = str(job.id)
+
+
 def failure_hook(job, exception):
     job.workspace["output"] = "failure hook ran"
+    job.workspace["exception"] = str(exception)
+    job.workspace["job_id"] = str(job.id)
 
 
 def creation_hook(job):
     job.workspace["output"] = "creation hook ran"
+    job.workspace["job_id"] = str(job.id)
 
 
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
@@ -316,6 +329,7 @@ class JobCreationHookTestCase(TestCase):
         job = Job.objects.create(name="testjob")
         job = Job.objects.get()
         self.assertEqual(job.workspace["output"], "creation hook ran")
+        self.assertEqual(job.workspace["job_id"], str(job.id))
 
     def test_creation_hook_only_runs_on_create(self):
         job = Job.objects.create(name="testjob")
@@ -324,6 +338,42 @@ class JobCreationHookTestCase(TestCase):
         job.save()
         job = Job.objects.get()
         self.assertEqual(job.workspace["output"], "creation hook output removed")
+
+
+@override_settings(
+    JOBS={
+        "testjob": {
+            "tasks": ["django_dbq.tests.failing_task"],
+            "pre_task_hook": "django_dbq.tests.pre_task_hook",
+        }
+    }
+)
+class JobPreTaskHookTestCase(TestCase):
+    def test_pre_task_hook(self):
+        job = Job.objects.create(name="testjob")
+        Worker("default", 1)._process_job()
+        job = Job.objects.get()
+        self.assertEqual(job.state, Job.STATES.FAILED)
+        self.assertEqual(job.workspace["output"], "failure hook ran")
+        self.assertEqual(job.workspace["job_id"], str(job.id))
+
+
+@override_settings(
+    JOBS={
+        "testjob": {
+            "tasks": ["django_dbq.tests.failing_task"],
+            "post_task_hook": "django_dbq.tests.post_task_hook",
+        }
+    }
+)
+class JobPostTaskHookTestCase(TestCase):
+    def test_post_task_hook(self):
+        job = Job.objects.create(name="testjob")
+        Worker("default", 1)._process_job()
+        job = Job.objects.get()
+        self.assertEqual(job.state, Job.STATES.FAILED)
+        self.assertEqual(job.workspace["output"], "post task hook ran")
+        self.assertEqual(job.workspace["job_id"], str(job.id))
 
 
 @override_settings(
@@ -341,6 +391,8 @@ class JobFailureHookTestCase(TestCase):
         job = Job.objects.get()
         self.assertEqual(job.state, Job.STATES.FAILED)
         self.assertEqual(job.workspace["output"], "failure hook ran")
+        self.assertIn("uh oh", job.workspace["exception"])
+        self.assertEqual(job.workspace["job_id"], str(job.id))
 
 
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
