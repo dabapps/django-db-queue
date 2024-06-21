@@ -61,8 +61,6 @@ class Worker:
             if not job:
                 return
 
-            job.run_pre_task_hook()
-
             logger.info(
                 'Processing job: name="%s" queue="%s" id=%s state=%s next_task=%s',
                 job.name,
@@ -77,7 +75,10 @@ class Worker:
 
         try:
             task_function = import_string(job.next_task)
+
+            job.run_pre_task_hook()
             task_function(job)
+
             job.update_next_task()
             if not job.next_task:
                 job.state = Job.STATES.COMPLETE
@@ -96,6 +97,11 @@ class Worker:
                 failure_hook_function(job, exception)
             else:
                 logger.info("No failure hook for job id=%s", job.pk)
+        finally:
+            try:
+                job.run_post_task_hook()
+            except:
+                logger.exception("Job id=%s post_task_hook failed", job.pk)
 
         logger.info(
             'Updating job: name="%s" id=%s state=%s next_task=%s',
@@ -110,8 +116,6 @@ class Worker:
         except:
             logger.exception("Failed to save job: id=%s", job.pk)
             raise
-
-        job.run_post_task_hook()
 
         self.current_job = None
 

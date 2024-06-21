@@ -343,7 +343,7 @@ class JobCreationHookTestCase(TestCase):
 @override_settings(
     JOBS={
         "testjob": {
-            "tasks": ["django_dbq.tests.failing_task"],
+            "tasks": ["django_dbq.tests.test_task"],
             "pre_task_hook": "django_dbq.tests.pre_task_hook",
         }
     }
@@ -353,15 +353,15 @@ class JobPreTaskHookTestCase(TestCase):
         job = Job.objects.create(name="testjob")
         Worker("default", 1)._process_job()
         job = Job.objects.get()
-        self.assertEqual(job.state, Job.STATES.FAILED)
-        self.assertEqual(job.workspace["output"], "failure hook ran")
+        self.assertEqual(job.state, Job.STATES.COMPLETE)
+        self.assertEqual(job.workspace["output"], "pre task hook ran")
         self.assertEqual(job.workspace["job_id"], str(job.id))
 
 
 @override_settings(
     JOBS={
         "testjob": {
-            "tasks": ["django_dbq.tests.failing_task"],
+            "tasks": ["django_dbq.tests.test_task"],
             "post_task_hook": "django_dbq.tests.post_task_hook",
         }
     }
@@ -371,7 +371,7 @@ class JobPostTaskHookTestCase(TestCase):
         job = Job.objects.create(name="testjob")
         Worker("default", 1)._process_job()
         job = Job.objects.get()
-        self.assertEqual(job.state, Job.STATES.FAILED)
+        self.assertEqual(job.state, Job.STATES.COMPLETE)
         self.assertEqual(job.workspace["output"], "post task hook ran")
         self.assertEqual(job.workspace["job_id"], str(job.id))
 
