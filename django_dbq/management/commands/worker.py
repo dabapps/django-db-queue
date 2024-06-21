@@ -74,12 +74,10 @@ class Worker:
             self.current_job = job
 
         try:
-            task_function = import_string(job.next_task)
-
             job.run_pre_task_hook()
-            task_function(job)
-
+            job.run_next_task()
             job.update_next_task()
+
             if not job.next_task:
                 job.state = Job.STATES.COMPLETE
             else:
@@ -87,16 +85,7 @@ class Worker:
         except Exception as exception:
             logger.exception("Job id=%s failed", job.pk)
             job.state = Job.STATES.FAILED
-
-            failure_hook_name = job.get_failure_hook_name()
-            if failure_hook_name:
-                logger.info(
-                    "Running failure hook %s for job id=%s", failure_hook_name, job.pk
-                )
-                failure_hook_function = import_string(failure_hook_name)
-                failure_hook_function(job, exception)
-            else:
-                logger.info("No failure hook for job id=%s", job.pk)
+            job.run_failure_hook(exception)
         finally:
             try:
                 job.run_post_task_hook()
