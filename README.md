@@ -112,6 +112,35 @@ JOBS = {
 }
 ```
 
+#### Pre & Post Task Hooks
+You can also run pre task or post task hooks, which happen in the normal processing of your `Job` instances and are executed inside the worker process.
+
+Both pre and post task hooks receive your `Job` instance as their only argument. Here's an example:
+
+```python
+def my_pre_task_hook(job):
+    ...  # configure something before running your task
+```
+
+To ensure these hooks are run, simply add a `pre_task_hook` or `post_task_hook` key (or both, if needed) to your job config like so:
+
+```python
+JOBS = {
+    "my_job": {
+        "tasks": ["project.common.jobs.my_task"],
+        "pre_task_hook": "project.common.jobs.my_pre_task_hook",
+        "post_task_hook": "project.common.jobs.my_post_task_hook",
+    },
+}
+```
+
+Notes:
+
+* If the `pre_task_hook` fails (raises an exception), the task function is not run, and django-db-queue behaves as if the task function itself had failed: the failure hook is called, and the job is goes into the `FAILED` state.
+* The `post_task_hook` is always run, even if the job fails. In this case, it runs after the `failure_hook`.
+* If the `post_task_hook` raises an exception, this is logged but the the job is **not marked as failed** and the failure hook does not run. This is because the `post_task_hook` might need to perform cleanup that always happens after the task, no matter whether it succeeds or fails.
+
+
 ### Start the worker
 
 In another terminal:

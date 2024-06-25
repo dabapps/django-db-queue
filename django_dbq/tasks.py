@@ -2,6 +2,8 @@ from django.conf import settings
 
 
 TASK_LIST_KEY = "tasks"
+PRE_TASK_HOOK_KEY = "pre_task_hook"
+POST_TASK_HOOK_KEY = "post_task_hook"
 FAILURE_HOOK_KEY = "failure_hook"
 CREATION_HOOK_KEY = "creation_hook"
 
@@ -22,6 +24,16 @@ def get_next_task_name(job_name, current_task=None):
         return task_list[next_task_index]
     except IndexError:
         return None
+
+
+def get_pre_task_hook_name(job_name):
+    """Return the name of the pre task hook for the given job (as a string) or None"""
+    return settings.JOBS[job_name].get(PRE_TASK_HOOK_KEY)
+
+
+def get_post_task_hook_name(job_name):
+    """Return the name of the post_task hook for the given job (as a string) or None"""
+    return settings.JOBS[job_name].get(POST_TASK_HOOK_KEY)
 
 
 def get_failure_hook_name(job_name):
