@@ -9,21 +9,13 @@ jobs:
 
     strategy:
       matrix:
-        python: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        django: ["3.2", "4.0", "4.1", "4.2", "5.0"]
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        django: ["4.2", "5.0", "5.1"]
         exclude:
-          - python: "3.11"
-            django: "3.2"
-          - python: "3.12"
-            django: "3.2"
-          - python: "3.11"
-            django: "4.0"
-          - python: "3.12"
-            django: "4.0"
-          - python: "3.8"
-            django: "5.0"
           - python: "3.9"
             django: "5.0"
+          - python: "3.9"
+            django: "5.1"
         database_url:
           - postgres://runner:password@localhost/project
           - mysql://root:root@127.0.0.1/project
@@ -45,11 +37,11 @@ jobs:
     steps:
     - name: Start MySQL
       run: sudo systemctl start mysql.service
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Install system Python build deps for psycopg2
       run: sudo apt-get install python3-dev python3.11-dev
     - name: Set up Python ${{ matrix.python }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
     - name: Upgraded pip
