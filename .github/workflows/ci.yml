@@ -47,13 +47,13 @@ jobs:
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python }}
+        python-version: ${{ matrix.python }}.*
     - name: Upgraded pip
       run: pip install --upgrade pip
     - name: Install dependencies
       run: pip install -r test-requirements.txt
     - name: Install Django
-      run: pip install -U django==${{ matrix.django }}
+      run: pip install -U django~=${{ matrix.django }}.0
     - name: Run tests
       run: python manage.py test
     - name: Run black
