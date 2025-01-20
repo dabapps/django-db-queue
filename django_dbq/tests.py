@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone as datetime_timezone
-import mock
+from unittest import mock
 
 import freezegun
 from django.core.management import call_command
