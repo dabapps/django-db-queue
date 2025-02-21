@@ -288,6 +288,11 @@ queue_depths = Job.get_queue_depths()
 print(queue_depths)  # {"default": 1, "other_queue": 1}
 ```
 
+You can also exclude jobs which exist but are scheduled to be run in the future from the queue depths, where `run_after` is set to a future time from now. To do this set the `exclude_future_jobs` kwarg like so:
+```python
+queue_depths = Job.get_queue_depths(exclude_future_jobs=True)
+```
+
 **Important:** When checking queue depths, do not assume that the key for your queue will always be available. Queue depths of zero won't be included
 in the dict returned by this method.
 
@@ -311,6 +316,8 @@ manage.py worker [queue_name] [--rate_limit]
 ##### manage.py queue_depth
 If you'd like to check your queue depth from the command line, you can run `manage.py queue_depth [queue_name [queue_name ...]]` and any
 jobs in the "NEW" or "READY" states will be returned.
+
+If you wish to exclude jobs which are scheduled to be run in the future you can add `--exclude_future_jobs` to the command.
 
 **Important:** If you misspell or provide a queue name which does not have any jobs, a depth of 0 will always be returned.
 
