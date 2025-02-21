@@ -8,10 +8,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("queue_name", nargs="*", default=["default"], type=str)
+        parser.add_argument("--exclude_future_jobs", default=False, type=bool)
 
     def handle(self, *args, **options):
         queue_names = options["queue_name"]
-        queue_depths = Job.get_queue_depths()
+        queue_depths = Job.get_queue_depths(
+            exclude_future_jobs=options["exclude_future_jobs"]
+        )
 
         queue_depths_string = " ".join(
             [

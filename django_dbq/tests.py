@@ -111,15 +111,19 @@ class JobModelMethodTestCase(TestCase):
         self.assertDictEqual(queue_depths, {"default": 1, "testworker": 1})
 
 
+@freezegun.freeze_time("2025-01-01T12:00:00Z")
 @override_settings(JOBS={"testjob": {"tasks": ["a"]}})
 class QueueDepthTestCase(TestCase):
     def test_queue_depth(self):
-
         Job.objects.create(name="testjob", state=Job.STATES.FAILED)
         Job.objects.create(name="testjob", state=Job.STATES.NEW)
         Job.objects.create(name="testjob", state=Job.STATES.FAILED)
         Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
-        Job.objects.create(name="testjob", state=Job.STATES.READY)
+        Job.objects.create(
+            name="testjob",
+            state=Job.STATES.READY,
+            run_after=timezone.make_aware(datetime(2025, 1, 1, 13, 0, 0)),
+        )
         Job.objects.create(
             name="testjob", queue_name="testqueue", state=Job.STATES.READY
         )
@@ -131,6 +135,28 @@ class QueueDepthTestCase(TestCase):
         call_command("queue_depth", stdout=stdout)
         output = stdout.getvalue()
         self.assertEqual(output.strip(), "event=queue_depths default=2")
+
+    def test_queue_depth_exclude_future_jobs(self):
+        Job.objects.create(name="testjob", state=Job.STATES.FAILED)
+        Job.objects.create(name="testjob", state=Job.STATES.NEW)
+        Job.objects.create(name="testjob", state=Job.STATES.FAILED)
+        Job.objects.create(name="testjob", state=Job.STATES.COMPLETE)
+        Job.objects.create(
+            name="testjob",
+            state=Job.STATES.READY,
+            run_after=timezone.make_aware(datetime(2025, 1, 1, 13, 0, 0)),
+        )
+        Job.objects.create(
+            name="testjob", queue_name="testqueue", state=Job.STATES.READY
+        )
+        Job.objects.create(
+            name="testjob", queue_name="testqueue", state=Job.STATES.READY
+        )
+
+        stdout = StringIO()
+        call_command("queue_depth", exclude_future_jobs=True, stdout=stdout)
+        output = stdout.getvalue()
+        self.assertEqual(output.strip(), "event=queue_depths default=1")
 
     def test_queue_depth_multiple_queues(self):
 
