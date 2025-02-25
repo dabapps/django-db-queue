@@ -307,11 +307,12 @@ created more than (by default) 24 hours ago. This could be run, for example, as 
 To start a worker:
 
 ```
-manage.py worker [queue_name] [--rate_limit]
+manage.py worker [queue_name] [--rate_limit] [--drain]
 ```
 
 - `queue_name` is optional, and will default to `default`
 - The `--rate_limit` flag is optional, and will default to `1`. It is the minimum number of seconds that must have elapsed before a subsequent job can be run.
+- The `--drain` flag, if provided, will cause the worker to drain all currently queued jobs and then exit. This is useful if your hosting environment does not support persistent background processes, but does support custom cron jobs.
 
 ##### manage.py queue_depth
 If you'd like to check your queue depth from the command line, you can run `manage.py queue_depth [queue_name [queue_name ...]]` and any

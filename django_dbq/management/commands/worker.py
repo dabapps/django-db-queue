@@ -15,9 +15,10 @@ DEFAULT_QUEUE_NAME = "default"
 
 
 class Worker:
-    def __init__(self, name, rate_limit_in_seconds):
+    def __init__(self, name, rate_limit_in_seconds, drain=False):
         self.queue_name = name
         self.rate_limit_in_seconds = rate_limit_in_seconds
+        self.drain = drain
         self.alive = True
         self.last_job_finished = None
         self.current_job = None
@@ -59,6 +60,8 @@ class Worker:
         with transaction.atomic():
             job = Job.objects.get_ready_or_none(self.queue_name)
             if not job:
+                if self.drain:
+                    self.alive = False
                 return
 
             logger.info(
@@ -123,6 +126,13 @@ class Command(BaseCommand):
             type=int,
         )
         parser.add_argument(
+            "--drain",
+            help="Process all jobs in the queue and then exit",
+            action="store_true",
+            dest="drain",
+            default=False,
+        )
+        parser.add_argument(
             "--dry-run",
             action="store_true",
             dest="dry_run",
@@ -139,13 +149,14 @@ class Command(BaseCommand):
 
         queue_name = options["queue_name"]
         rate_limit_in_seconds = options["rate_limit"]
+        drain = options["drain"]
 
         self.stdout.write(
             'Starting job worker for queue "%s" with rate limit of one job per %s second(s)'
             % (queue_name, rate_limit_in_seconds)
         )
 
-        worker = Worker(queue_name, rate_limit_in_seconds)
+        worker = Worker(queue_name, rate_limit_in_seconds, drain=drain)
 
         if options["dry_run"]:
             return
