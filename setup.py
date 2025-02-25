@@ -16,7 +16,7 @@ author = "DabApps"
 author_email = "contact@dabapps.com"
 license = "BSD"
 install_requires = [
-    "Django>=3.1",
+    "Django>=4.2",
 ]
 
 long_description = """Simple database-backed job queue system"""
@@ -82,5 +82,5 @@ setup(
     package_data=get_package_data(package),
     install_requires=install_requires,
     classifiers=[],
-    python_requires=">=3.6"
+    python_requires=">=3.9"
 )
