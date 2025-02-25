@@ -8,7 +8,7 @@ from django_dbq.tasks import (
     get_failure_hook_name,
     get_creation_hook_name,
 )
-from django.db.models import JSONField, UUIDField, Count, TextChoices
+from django.db.models import JSONField, UUIDField, Count, TextChoices, Q
 import datetime
 import logging
 import uuid
@@ -173,10 +173,17 @@ class Job(models.Model):
             creation_hook_function(self)
 
     @staticmethod
-    def get_queue_depths():
+    def get_queue_depths(*, exclude_future_jobs=False):
+        jobs_waiting_in_queue = Job.objects.filter(
+            state__in=(Job.STATES.READY, Job.STATES.NEW)
+        )
+        if exclude_future_jobs:
+            jobs_waiting_in_queue = jobs_waiting_in_queue.filter(
+                Q(run_after__isnull=True) | Q(run_after__lte=timezone.now())
+            )
+
         annotation_dicts = (
-            Job.objects.filter(state__in=(Job.STATES.READY, Job.STATES.NEW))
-            .values("queue_name")
+            jobs_waiting_in_queue.values("queue_name")
             .order_by("queue_name")
             .annotate(Count("queue_name"))
         )
