@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta
-import mock
+from datetime import datetime, timedelta, timezone as datetime_timezone
+from unittest import mock
 
 import freezegun
-from django.core.management import call_command, CommandError
+from django.core.management import call_command
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils import timezone
@@ -11,14 +11,6 @@ from django_dbq.management.commands.worker import Worker
 from django_dbq.models import Job
 
 from io import StringIO
-
-
-try:
-    utc = timezone.utc
-except AttributeError:
-    from datetime import timezone as datetime_timezone
-
-    utc = datetime_timezone.utc
 
 
 def test_task(job=None):
@@ -302,7 +294,8 @@ class JobTestCase(TestCase):
     def test_ignores_jobs_until_run_after_is_in_the_past(self):
         job_1 = Job.objects.create(name="testjob")
         job_2 = Job.objects.create(
-            name="testjob", run_after=datetime(2021, 11, 4, 8, tzinfo=utc)
+            name="testjob",
+            run_after=datetime(2021, 11, 4, 8, tzinfo=datetime_timezone.utc),
         )
 
         with freezegun.freeze_time(datetime(2021, 11, 4, 7)):
