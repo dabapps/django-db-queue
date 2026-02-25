@@ -1,6 +1,5 @@
 from django.conf import settings
 
-
 TASK_LIST_KEY = "tasks"
 PRE_TASK_HOOK_KEY = "pre_task_hook"
 POST_TASK_HOOK_KEY = "post_task_hook"
