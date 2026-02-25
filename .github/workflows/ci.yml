@@ -41,8 +41,6 @@ jobs:
       - name: Start MySQL
         run: sudo systemctl start mysql.service
       - uses: actions/checkout@v6
-      - name: Install system Python build deps for psycopg2
-        run: sudo apt-get install python3-dev
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v6
         with:
