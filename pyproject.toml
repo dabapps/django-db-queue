@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-db-queue"
+version = "3.3.0"
+description = "Simple database-backed job queue system"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+authors = [{ name = "DabApps", email = "contact@dabapps.com" }]
+dependencies = [
+    "Django>=4.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/dabapps/django-db-queue"
+Repository = "https://github.com/dabapps/django-db-queue"
+
+[tool.setuptools.packages.find]
+include = ["django_dbq*"]
