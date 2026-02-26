@@ -7,8 +7,8 @@ Simple database-backed job queue. Jobs are defined in your settings, and are pro
 Asynchronous tasks are run via a *job queue*. This system is designed to support multi-step job workflows.
 
 Supported and tested against:
-- Django 4.2, 5.0, 5.1
-- Python 3.9, 3.10, 3.11, 3.12, 3.13
+- Django 4.2, 5.2, 6.0
+- Python 3.10, 3.11, 3.12, 3.13, 3.14
 
 ## Getting Started
 
@@ -229,7 +229,7 @@ def my_second_task(job):
     logger.info("Task 1 says: %s" % job.workspace['message'])
 ```
 
-The workspace can be queried like any [JSONField](https://docs.djangoproject.com/en/3.2/topics/db/queries/#querying-jsonfield). For instance, if you wanted to display a list of jobs that a certain user had initiated, add `user_id` to the workspace when creating the job:
+The workspace can be queried like any [JSONField](https://docs.djangoproject.com/en/5.2/topics/db/queries/#querying-jsonfield). For instance, if you wanted to display a list of jobs that a certain user had initiated, add `user_id` to the workspace when creating the job:
 
 ```python
 Job.objects.create(name="foo", workspace={"user_id": request.user.id})
